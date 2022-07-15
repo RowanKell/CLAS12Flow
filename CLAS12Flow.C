@@ -9,8 +9,7 @@
 
 using namespace std;
 
-int CLAS12Flow()
-{
+int CLAS12Flow() {
     gROOT->ProcessLine("#include <vector>");
     
     auto hipofile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3301_3.hipo";
@@ -40,7 +39,7 @@ int CLAS12Flow()
     // Vectors will suffice for now
     
     map<int, string> PID_map;
-    //Quarks
+    // Quarks
     PID_map.insert(pair<int,string>(-6, "Anti-Top"));
     PID_map.insert(pair<int,string>(-5, "Anti-Bottom"));
     PID_map.insert(pair<int,string>(-4, "Anti-Charm"));
@@ -53,16 +52,16 @@ int CLAS12Flow()
     PID_map.insert(pair<int,string>(4, "Charm"));
     PID_map.insert(pair<int,string>(5, "Bottom"));
     PID_map.insert(pair<int,string>(6, "Top"));
-    //Leptons
+    // Leptons
     PID_map.insert(pair<int,string>(11, "Electron"));
     PID_map.insert(pair<int,string>(13, "Muon"));
     PID_map.insert(pair<int,string>(15, "Tau"));
     PID_map.insert(pair<int,string>(22, "Photon"));
-    //Bosons
+    // Bosons
     PID_map.insert(pair<int,string>(-24, "W-"));
     PID_map.insert(pair<int,string>(24, "W+"));
     PID_map.insert(pair<int,string>(23, "Z"));
-    //Baryons
+    // Baryons
     PID_map.insert(pair<int,string>(-3122, "Anti-Lambda"));
     PID_map.insert(pair<int,string>(-211, "Pi-"));
     PID_map.insert(pair<int,string>(111, "Pi0"));
@@ -80,7 +79,7 @@ int CLAS12Flow()
     PID_map.insert(pair<int,string>(3224, "Sigma*+"));
     PID_map.insert(pair<int,string>(3312, "Xi-"));
     PID_map.insert(pair<int,string>(3324, "Xi*0"));
-    //Mesons
+    // Mesons
     PID_map.insert(pair<int,string>(-323, "K*-"));
     PID_map.insert(pair<int,string>(-313, "K*0"));
     PID_map.insert(pair<int,string>(-213, "Rho-"));
@@ -93,19 +92,20 @@ int CLAS12Flow()
     PID_map.insert(pair<int,string>(323, "K*+"));
     PID_map.insert(pair<int,string>(331, "Eta"));
     PID_map.insert(pair<int,string>(333, "Phi"));
-    //Event Gen
+    // Event Gen
     PID_map.insert(pair<int,string>(91, "Gen=91")); //Lund Cluster
     PID_map.insert(pair<int,string>(92, "Gen=92")); //Lund String
 
-    //Particle list vectors for categorization
+    // Particle list vectors for categorization
     vdiquarklist = {1103, 2101, 2103, 2203, 3101, 3103, 3201, 3203, 3303, 4101, 4103, 4201, 4203, 4301, 4303, 4403, 5101, 5103, 5201, 5203, 5301, 5303, 5401, 5403, 5503};
     vquarklist = {-6,-5,-4,-3,-2,-1,1,2,3,4,5,6};
     vhadronlist = {-3122, -211, 111, 211, 1114, 2114, 2212, 2214, 2224, 3112, 3114, 3122, 3214, 3222, 3224, 3312, 3324, -323, -313, -213, 113, 213, 221, 223, 310, 313, 323, 331, 333};
     
-    //Diquarks - we don't usually care what they are, but we can label them all Diquark this way
+    // Diquarks - we don't usually care what they are, but we can label them all Diquark this way
     vdiquarksize = vdiquarklist.size();
-    for(int i = 0;i < vdiquarksize;i++){
-    PID_map.insert(pair<int,string>(vdiquarklist[i], "Diquark"));
+
+    for (int i = 0; i < vdiquarksize; i++) {
+        PID_map.insert(pair<int,string>(vdiquarklist[i], "Diquark"));
     }
     
     // Initializing variables needed from MC::Lund
@@ -115,19 +115,19 @@ int CLAS12Flow()
     int parent;
     int type;
     
-    //Initializing counting variables
+    // Initializing counting variables
     int qcount;
     int MCGenindex;
     
-    //Add MC::Lund bank for taking Lund data
+    // Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
     
-    //Add needed bank items
+    // Add needed bank items
     auto iPid=config_c12->getBankOrder(idx_MCLund,"pid");           // I THINK THIS IS ALL UNUSED
     auto idaughter=config_c12->getBankOrder(idx_MCLund,"daughter");
     auto iparent=config_c12->getBankOrder(idx_MCLund,"parent");
     
-    //Vectors for storing particle info for each event
+    // Vectors for storing particle info for each event
     std::vector<float> vpid;
     std::vector<float> vdaughter;
     std::vector<float> vparent;
@@ -189,12 +189,12 @@ int CLAS12Flow()
     int targetparent;
     int targetdaughter;
     
-    //This comes from AnalysisWithExtraBanks.C in CLAS12root documentation
+    // This comes from AnalysisWithExtraBanks.C in CLAS12root documentation
     auto& c12 = chain.C12ref();
     
-    //Loop over all events in Hipo file
-    while(chain.Next()==true){
-        if(c12->getDetParticles().empty())
+    // Loop over all events in Hipo file
+    while (chain.Next()==true) {
+        if (c12->getDetParticles().empty())
             continue;
         
         qcount = 0;
@@ -223,8 +223,8 @@ int CLAS12Flow()
         vmhadronpid.clear();
         vmhadrondaughter.clear();
         
-        //Loop over MC::Lund entries in this event using index -> ID = idx_MCLund
-        for(auto imc = 0; imc < c12->getBank(idx_MCLund)->getRows(); imc++){
+        // Loop over MC::Lund entries in this event using index -> ID = idx_MCLund
+        for (auto imc = 0; imc < c12->getBank(idx_MCLund)->getRows(); imc++) {
             auto mcparticles = c12->mcparts();
             id = mcparticles->getIndex(imc);
             pid = mcparticles->getPid(imc);
@@ -233,7 +233,7 @@ int CLAS12Flow()
             type = mcparticles->getType(imc);
             
             // Identifying Lund String
-            if(pid==92 or pid==91){ 
+            if (pid==92 or pid==91) { 
                 MCGenindex += 1;
                 MCGenparent = parent;
                 MCGendaughter = daughter;
@@ -241,7 +241,7 @@ int CLAS12Flow()
                 MCGenpid = pid;
             }
             // Identifying pre-fragment quark candidates
-            else if(std::count(vquarklist.begin(), vquarklist.end(), pid)){
+            else if (std::count(vquarklist.begin(), vquarklist.end(), pid)) {
                 qcount += 1;
                 vquarkindex.push_back(id);
                 vquarkparent.push_back(parent);
@@ -249,55 +249,56 @@ int CLAS12Flow()
                 vquarkpid.push_back(pid);
             }
             // Identifying diquark
-            else if(std::count(vdiquarklist.begin(), vdiquarklist.end(), pid) && parent == 2){
+            else if (std::count(vdiquarklist.begin(), vdiquarklist.end(), pid) && parent == 2) {
                 diquarkindex = id;
                 diquarkpid = pid;
                 diquarkparent = parent;
                 diquarkdaughter = daughter;
             }
-            //Identifying endstate hadrons
-            else if(type == 1 && std::count(vhadronlist.begin(), vqhadronlist.end(), pid)){
+            // Identifying endstate hadrons
+            else if (type == 1 && std::count(vhadronlist.begin(), vqhadronlist.end(), pid)) {
                 vhadronpid.push_back(pid);
                 vhadronparent.push_back(parent);
                 vhadronindex.push_back(id);
                 vhadrondaughter.push_back(daughter);
             }
-            //Identifying mid-state hadrons
-            else if(type != 1 && std::count(vhadronlist.begin(), vqhadronlist.end(), pid)){
+            // Identifying mid-state hadrons
+            else if (type != 1 && std::count(vhadronlist.begin(), vqhadronlist.end(), pid)) {
                 vmhadronpid.push_back(pid);
                 vmhadronparent.push_back(parent);
                 vmhadronindex.push_back(id);
                 vmhadrondaughter.push_back(daughter);
             }
-            //Identifying virtual photon
-            else if(pid == 22 && parent == 1) {
+            // Identifying virtual photon
+            else if (pid == 22 && parent == 1) {
                 vphotonindex = id;
                 vphotonpid = pid;
                 vphotonparent = parent;
                 vphotondaughter = daughter;
             }
-            //Identifying Beam Electron
-            else if(id == 1) {
+            // Identifying Beam Electron
+            else if (id == 1) {
                 belectronindex = id;
                 belectronpid = pid;
                 belectronparent = parent;
                 belectrondaughter = daughter;
             }
-            //Identifying Scattered Electron
-            else if(pid == 11 && parent == 1) {
+            // Identifying Scattered Electron
+            else if (pid == 11 && parent == 1) {
                 selectronindex = id;
                 selectronpid = pid;
                 selectronparent = parent;
                 selectrondaughter = daughter;
             }
-            //Identifying Target Proton
-            else if(id == 2) {
+            // Identifying Target Proton
+            else if (id == 2) {
                 targetindex = id;
                 targetpid = pid;
                 targetparent = parent;
                 targetdaughter = daughter;
             }
         }
+        
         //Identifying pre-fragment quark
         for(int i = 0; i<qcount; i++) 
         {
@@ -307,6 +308,7 @@ int CLAS12Flow()
                 quarkparent = vquarkparent[i];
                 quarkdaughter = vquarkdaughter[i];
           }
+
         }
     }
     return 0;
