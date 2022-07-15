@@ -302,10 +302,10 @@ int CLAS12Flow()
         for(int i = 0; i<qcount; i++) 
         {
             if(vquarkindex[i] == MCGenparent){
-                quarkindex; =  vquarkindex[i];
-                quarkpid; vquarkpid[i];
-                quarkparent; vquarkparent[i];
-                quarkdaughter; vquarkdaughter[i];
+                quarkindex =  vquarkindex[i];
+                quarkpid = vquarkpid[i];
+                quarkparent = vquarkparent[i];
+                quarkdaughter = vquarkdaughter[i];
           }
         }
     }
