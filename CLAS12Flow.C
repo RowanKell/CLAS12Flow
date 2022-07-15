@@ -298,14 +298,17 @@ int CLAS12Flow() {
                 targetdaughter = daughter;
             }
         }
-        // Identifying pre-fragment quark
-        for (int i = 0; i<qcount; i++) {
-            if (vquarkindex[i] == MCGenparent){
-                quarkindex = vquarkindex[i];
+        
+        //Identifying pre-fragment quark
+        for(int i = 0; i<qcount; i++) 
+        {
+            if(vquarkindex[i] == MCGenparent){
+                quarkindex =  vquarkindex[i];
                 quarkpid = vquarkpid[i];
                 quarkparent = vquarkparent[i];
                 quarkdaughter = vquarkdaughter[i];
-            }
+          }
+
         }
     }
     return 0;
