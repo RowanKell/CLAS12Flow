@@ -95,7 +95,8 @@ int CLAS12Flow() {
     // Event Gen
     PID_map.insert(pair<int,string>(91, "Gen=91")); //Lund Cluster
     PID_map.insert(pair<int,string>(92, "Gen=92")); //Lund String
-
+    map<int, string>::iterator it;
+    
     // Particle list vectors for categorization
     vdiquarklist = {1103, 2101, 2103, 2203, 3101, 3103, 3201, 3203, 3303, 4101, 4103, 4201, 4203, 4301, 4303, 4403, 5101, 5103, 5201, 5203, 5301, 5303, 5401, 5403, 5503};
     vquarklist = {-6,-5,-4,-3,-2,-1,1,2,3,4,5,6};
@@ -117,6 +118,8 @@ int CLAS12Flow() {
     
     // Initializing counting variables
     int qcount;
+    int qusecount;
+    int diquarkcount;
     int MCGenindex;
     
     // Add MC::Lund bank for taking Lund data
@@ -146,6 +149,29 @@ int CLAS12Flow() {
     std::vector<float> vmhadronpid;
     std::vector<float> vmhadronparent;
     std::vector<float> vmhadrondaughter;
+    
+    std::vector<float> vdiquarkindex;
+    std::vector<float> vdiquarkpid;
+    std::vector<float> vdiquarkdaughter;
+    std::vector<float> vdiquarkparent;
+    
+    std::vector<float> vusequarkindex;
+    std::vector<float> vusequarkpid;
+    std::vector<float> vusequarkdaughter;
+    std::vector<float> vusequarkparent;
+    
+    std::vector<string> vhadronname;
+    
+    std::vector<string> vendsthadron_init_names;
+    vendsthadron_init_names.push_back("hadron0");
+    vendsthadron_init_names.push_back("hadron1");
+    vendsthadron_init_names.push_back("hadron2");
+    vendsthadron_init_names.push_back("hadron3");
+    vendsthadron_init_names.push_back("hadron4");
+    vendsthadron_init_names.push_back("hadron5");
+    vendsthadron_init_names.push_back("hadron6");
+    vendsthadron_init_names.push_back("hadron7");
+    vendsthadron_init_names.push_back("hadron8");
     
     // MC Gen data
     int MCGenparent;
@@ -189,15 +215,39 @@ int CLAS12Flow() {
     int targetparent;
     int targetdaughter;
     
+    // Selection
+    bool good_dihadronflow;
+    bool do_dihadronflow;
+    do_dihadronflow = true;
+    good_dihadronflow = false;
+    
+    // Flowchart file creation
+    std::ifstream  src("FlowDev/test.py", std::ios::binary);
+    std::ofstream  dst("flowtest.py",   std::ios::binary);
+    dst << src.rdbuf();
+    dst.close();
+    
+    // Flowchart variables
+    char equalscompute [] = " = compute(";
+    char endparan [] = ")\n";
+    char finalst_cluster [] = "with Cluster(\"Final State\"):";
+    char connect_right [] = " >> ";
+    char connect_left [] = " << ";
+    char endline [] = "\n";
+    char tab [] = "    ";
+
+    
     // This comes from AnalysisWithExtraBanks.C in CLAS12root documentation
     auto& c12 = chain.C12ref();
     
     // Loop over all events in Hipo file
-    while (chain.Next()==true) {
+    while (chain.Next()==true && good_dihadronflow == false) {
         if (c12->getDetParticles().empty())
             continue;
         
         qcount = 0;
+        qusecount = 0;
+        diquarkcount = 0;
         MCGenindex = 0;
         
         // General Vectors
@@ -222,6 +272,15 @@ int CLAS12Flow() {
         vmhadronparent.clear();
         vmhadronpid.clear();
         vmhadrondaughter.clear();
+        
+        // Diquark vector
+        vdiquarkindex.clear();
+        vdiquarkpid.clear();
+        vdiquarkdaughter.clear();
+        vdiquarkparent.clear();
+        
+        // Hadron name vector
+        vhadronname.clear();
         
         // Loop over MC::Lund entries in this event using index -> ID = idx_MCLund
         for (auto imc = 0; imc < c12->getBank(idx_MCLund)->getRows(); imc++) {
@@ -250,10 +309,11 @@ int CLAS12Flow() {
             }
             // Identifying diquark
             else if (std::count(vdiquarklist.begin(), vdiquarklist.end(), pid) && parent == 2) {
-                diquarkindex = id;
-                diquarkpid = pid;
-                diquarkparent = parent;
-                diquarkdaughter = daughter;
+                diquarkcount += 1;
+                vdiquark.push_back(pid);
+                vdiquark.push_back(parent);
+                vdiquark.push_back(id);
+                vdiquark.push_back(daughter);
             }
             // Identifying endstate hadrons
             else if (type == 1 && std::count(vhadronlist.begin(), vqhadronlist.end(), pid)) {
@@ -261,6 +321,7 @@ int CLAS12Flow() {
                 vhadronparent.push_back(parent);
                 vhadronindex.push_back(id);
                 vhadrondaughter.push_back(daughter);
+                vhadronname.push_back(0);
             }
             // Identifying mid-state hadrons
             else if (type != 1 && std::count(vhadronlist.begin(), vqhadronlist.end(), pid)) {
@@ -303,12 +364,40 @@ int CLAS12Flow() {
         for(int i = 0; i<qcount; i++) 
         {
             if(vquarkindex[i] == MCGenparent){
-                quarkindex =  vquarkindex[i];
-                quarkpid = vquarkpid[i];
-                quarkparent = vquarkparent[i];
-                quarkdaughter = vquarkdaughter[i];
+                qusecount += 1; //counting number of useful quarks that contribute to MC string
+                vusequarkindex[qusecount] =  vquarkindex[i];
+                vusequarkpid[qusecount] = vquarkpid[i];
+                vusequarkdaughter[qusecount] = vquarkparent[i];
+                vusequarkparent[qusecount] = vquarkdaughter[i];
           }
 
+        }
+        if(//NEED TO ADD CONDITIONS THAT SELECT pi+pi- DIHADRON EVENTS
+            vhadronpid.size() == 2 &&
+            ((vhadronpid[0] == 211 && vhadronpid[1] == -211) ||
+            (vhadronpid[0] == -211 && vhadronpid[1] == 211)) &&
+            qcount ==2 &&
+            MCGenpid == 92 &&
+            ) {good_dihadronflow = true;}
+        else {good_dihadronflow = false;}
+        
+        if(do_dihadronflow == true && good_dihadronflow == true) {
+               for(it=PID_map.begin(); it!=PID_map.end(); ++it){
+                  if(vhadronpid[0] == it->first) {
+                      vhadronname[0] == it->second;
+                  }
+                  if(vhadronpid[1] == it->first) {
+                      vhadronname[1] == it->second;
+                  }
+               }
+//            endsthadron_init_names
+            ofstream file("copied.py", ios::app);
+            file << tab << finalst_cluster << "\n";
+            for(int i = 0; i < 2; i++) {
+                file << tab << tab << endsthadron_init_names[i] << equalscompute << vhadronname[i] << endparan << "\n";
+            }
+            file.close();
+            break;
         }
     }
     return 0;
