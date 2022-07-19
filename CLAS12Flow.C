@@ -26,14 +26,38 @@ int CLAS12Flow() {
     //
     int userpid1; // These are user set values for hadrons they want
     int userpid2;
+//    int userpid3;
+//    int userpid4;
+//    int userpid5;
+//    int userpid6;
     
     userpid1 = 211;
     userpid2 = -211;
+//    userpid3 = ;
+//    userpid4 = ;
+//    userpid5 = ;
+//    userpid6 = ;
     
-    config_c12->addExactPid(11,1);    //exactly 1 electron
-    config_c12->addExactPid(userpid1,1);    //exactly 1 pi+
-    config_c12->addExactPid(userpid2,1);    //exactly 1 pi-
-    config_c12->addExactPid(2212,1);    //exactly 1 proton
+    bool do_dihadronflow = true;
+    
+    bool pidselect_at_least = false; // If you want at least the hadrons specified
+    bool pidselect_exact = true; //If you want exact hadron endstate
+    
+    std::vector<int> vuserpid;
+    
+    vuserpid = {userpid1, 
+                          userpid2,
+/*                          userpid3,
+                          userpid4,
+                          userpid5,
+                          userpid6
+*/                          };
+
+    int userpidN = vuserpid.size();
+//    config_c12->addExactPid(11,1);    //exactly 1 electron
+//    config_c12->addExactPid(userpid1,1);    //exactly 1 pi+
+//    config_c12->addExactPid(userpid2,1);    //exactly 1 pi-
+//    config_c12->addExactPid(2212,1);    //exactly 1 proton
     
     // Initializations for map
     std::vector<int> vdiquarklist;
@@ -126,6 +150,8 @@ int CLAS12Flow() {
     int qusecount;
     int diquarkcount;
     int MCGenindex;
+    int elec_count;
+    int event_count;
     
     // Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
@@ -251,10 +277,9 @@ int CLAS12Flow() {
     int targetdaughter;
     
     // Selection
-    bool good_dihadronflow;
-    bool do_dihadronflow;
-    do_dihadronflow = true;
-    good_dihadronflow = false;
+    bool good_dihadronflow = false;
+    bool pid_exact = false;
+    bool pid_at_least = false;
     
     // Flowchart file creation
     std::ifstream  src("FlowDev/test.py", std::ios::binary);
@@ -285,6 +310,8 @@ int CLAS12Flow() {
         qusecount = 0;
         diquarkcount = 0;
         MCGenindex = 0;
+        elec_count = 0;
+        event_count += 1;
         
         // General Vectors
         vpid.clear();
@@ -352,7 +379,7 @@ int CLAS12Flow() {
                 vdiquarkdaughter.push_back(daughter);
             }
             // Identifying endstate hadrons
-            else if (type == 1 && std::count(vhadronlist.begin(), vhadronlist.end(), pid)) {
+            else if (type == 1 && parent != 2 && std::count(vhadronlist.begin(), vhadronlist.end(), pid)) {
                 vhadronpid.push_back(pid);
                 vhadronparent.push_back(parent);
                 vhadronindex.push_back(id);
@@ -375,6 +402,7 @@ int CLAS12Flow() {
             }
             // Identifying Beam Electron
             else if (id == 1) {
+                elec_count += 1;
                 belectronindex = id;
                 belectronpid = pid;
                 belectronparent = parent;
@@ -382,6 +410,7 @@ int CLAS12Flow() {
             }
             // Identifying Scattered Electron
             else if (pid == 11 && parent == 1) {
+                elec_count += 1;
                 selectronindex = id;
                 selectronpid = pid;
                 selectronparent = parent;
@@ -410,12 +439,42 @@ int CLAS12Flow() {
           }
 
         }
-        if(//NEED TO ADD CONDITIONS THAT SELECT pi+pi- DIHADRON EVENTS
-            vhadronpid.size() == 2 &&
-            ((vhadronpid[0] == userpid1 && vhadronpid[1] == userpid2) ||
-            (vhadronpid[0] == userpid2 && vhadronpid[1] == userpid1)) &&
+        if(pidselect_at_least == true) {
+            for(int i = 0; i < userpidN; i++) {
+                if(std::count(vhadronpid.begin(), vhadronpid.end(), vuserpid[i])) {
+                    pid_at_least = true;
+                }
+                else {
+                    pid_at_least = false;
+                    break;
+                }
+            }
+        }
+        else if(pidselect_exact == true) {
+            for(int i = 0; i < vhadronpid.size(); i++) {
+                if(std::count(vuserpid.begin(),vuserpid.end(), vhadronpid[i]) && vhadronpid.size() == userpidN) { //checking to see if every hadron is specified by user, and if amount is correct
+                    pid_exact = true;
+                }
+                else {
+                    pid_exact = false ;
+                    break;
+                }
+            }
+        }
+        
+        if(pidselect_exact == true && // this is for exact inputs
+            pid_exact == true &&
+//            pid_at_least == true &&
             qcount ==2 &&
-            MCGenpid == 92) {good_dihadronflow = true;}
+            MCGenpid == 92 &&
+            elec_count == 2
+        ) {good_dihadronflow = true;}
+        else if(pidselect_at_least == true && //this is for at least inputs
+                pid_at_least == true &&
+                qcount == 2 && 
+                MCGenpid == 92 &&
+                elec_count == 2
+               ) {good_dihadronflow = true;}
         else{good_dihadronflow = false;}
         
         if(do_dihadronflow == true && good_dihadronflow == true) {
@@ -430,9 +489,18 @@ int CLAS12Flow() {
 //            endsthadron_init_names
             ofstream file("flowtest.py", ios::app);
             file << tab << finalst_cluster << "\n";
-            for(int i = 0; i < 2; i++) {
+            for(int i = 0; i < vhadronpid.size(); i++) {
                 file << tab << tab << vendsthadron_init_names[i] << equalscompute << quote << vhadronname[i] << quote << endparan << "\n";
+                file << "#hadron id: " << vhadronindex[i] << "\n";
+                file << "#hadron parent: " << vhadronparent[i] << "\n";
+                file << "#hadron daughter: " << vhadrondaughter[i] << "\n";
             }
+            file << "\n" << "#MCGen index: " << MCGenindex << "\n";
+            file << "\n" << "#MCGen parent: " << MCGenparent << "\n";
+            file << "\n" << "#MCGen pid: " << MCGenpid << "\n";
+            file << "\n" << "#MCGen daughter: " << MCGendaughter << "\n";
+            file << "#event count: " << event_count << "\n";
+            file << "#hadron count: " << vhadronpid.size() << "\n";
             file.close();
 //            break;
         }
