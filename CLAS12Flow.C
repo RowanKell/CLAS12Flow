@@ -24,10 +24,15 @@ int CLAS12Flow() {
     // See 'https://pdg.lbl.gov/2007/reviews/montecarlorpp.pdf' for PIDs
     // syntax: config_c12->addExactPid(<PID>,<# of particles>)
     //
+    int userpid1; // These are user set values for hadrons they want
+    int userpid2;
+    
+    userpid1 = 211;
+    userpid2 = -211;
     
     config_c12->addExactPid(11,1);    //exactly 1 electron
-    config_c12->addExactPid(211,1);    //exactly 1 pi+
-    config_c12->addExactPid(-211,1);    //exactly 1 pi-
+    config_c12->addExactPid(userpid1,1);    //exactly 1 pi+
+    config_c12->addExactPid(userpid2,1);    //exactly 1 pi-
     config_c12->addExactPid(2212,1);    //exactly 1 proton
     
     // Initializations for map
@@ -131,34 +136,65 @@ int CLAS12Flow() {
     auto iparent=config_c12->getBankOrder(idx_MCLund,"parent");
     
     // Vectors for storing particle info for each event
-    std::vector<float> vpid;
-    std::vector<float> vdaughter;
-    std::vector<float> vparent;
+    std::vector<int> vpid;
+    std::vector<int> vdaughter;
+    std::vector<int> vparent;
     
-    std::vector<float> vquarkindex;
-    std::vector<float> vquarkpid;    
-    std::vector<float> vquarkparent;
-    std::vector<float> vquarkdaughter;
+    std::vector<int> vquarkindex;
+    std::vector<int> vquarkpid;    
+    std::vector<int> vquarkparent;
+    std::vector<int> vquarkdaughter;
     
-    std::vector<float> vhadronindex;
-    std::vector<float> vhadronpid;
-    std::vector<float> vhadronparent;
-    std::vector<float> vhadrondaughter;
+    std::vector<int> vhadronindex;
+    std::vector<int> vhadronpid;
+    std::vector<int> vhadronparent;
+    std::vector<int> vhadrondaughter;
     
-    std::vector<float> vmhadronindex;
-    std::vector<float> vmhadronpid;
-    std::vector<float> vmhadronparent;
-    std::vector<float> vmhadrondaughter;
+    std::vector<int> vmhadronindex;
+    std::vector<int> vmhadronpid;
+    std::vector<int> vmhadronparent;
+    std::vector<int> vmhadrondaughter;
     
-    std::vector<float> vdiquarkindex;
-    std::vector<float> vdiquarkpid;
-    std::vector<float> vdiquarkdaughter;
-    std::vector<float> vdiquarkparent;
+    std::vector<int> vdiquarkindex;
+    std::vector<int> vdiquarkpid;
+    std::vector<int> vdiquarkdaughter;
+    std::vector<int> vdiquarkparent;
     
-    std::vector<float> vusequarkindex;
-    std::vector<float> vusequarkpid;
-    std::vector<float> vusequarkdaughter;
-    std::vector<float> vusequarkparent;
+    std::vector<int> vusequarkindex;
+    std::vector<int> vusequarkpid;
+    std::vector<int> vusequarkdaughter;
+    std::vector<int> vusequarkparent;
+    
+    //making these have 6 0s
+    vusequarkindex.push_back(0);
+    vusequarkpid.push_back(0);
+    vusequarkdaughter.push_back(0);
+    vusequarkparent.push_back(0);
+    
+    vusequarkindex.push_back(0);
+    vusequarkpid.push_back(0);
+    vusequarkdaughter.push_back(0);
+    vusequarkparent.push_back(0);
+    
+    vusequarkindex.push_back(0);
+    vusequarkpid.push_back(0);
+    vusequarkdaughter.push_back(0);
+    vusequarkparent.push_back(0);
+    
+    vusequarkindex.push_back(0);
+    vusequarkpid.push_back(0);
+    vusequarkdaughter.push_back(0);
+    vusequarkparent.push_back(0);
+    
+    vusequarkindex.push_back(0);
+    vusequarkpid.push_back(0);
+    vusequarkdaughter.push_back(0);
+    vusequarkparent.push_back(0);
+    
+    vusequarkindex.push_back(0);
+    vusequarkpid.push_back(0);
+    vusequarkdaughter.push_back(0);
+    vusequarkparent.push_back(0);
     
     std::vector<string> vhadronname;
     
@@ -177,7 +213,6 @@ int CLAS12Flow() {
     int MCGenparent;
     int MCGendaughter;
     int MCGenpid;
-    int MCGenindex;
     
     // Quark data
     int quarkindex;
@@ -235,6 +270,7 @@ int CLAS12Flow() {
     char connect_left [] = " << ";
     char endline [] = "\n";
     char tab [] = "    ";
+    char quote [] = "\"";
 
     
     // This comes from AnalysisWithExtraBanks.C in CLAS12root documentation
@@ -310,21 +346,21 @@ int CLAS12Flow() {
             // Identifying diquark
             else if (std::count(vdiquarklist.begin(), vdiquarklist.end(), pid) && parent == 2) {
                 diquarkcount += 1;
-                vdiquark.push_back(pid);
-                vdiquark.push_back(parent);
-                vdiquark.push_back(id);
-                vdiquark.push_back(daughter);
+                vdiquarkpid.push_back(pid);
+                vdiquarkparent.push_back(parent);
+                vdiquarkindex.push_back(id);
+                vdiquarkdaughter.push_back(daughter);
             }
             // Identifying endstate hadrons
-            else if (type == 1 && std::count(vhadronlist.begin(), vqhadronlist.end(), pid)) {
+            else if (type == 1 && std::count(vhadronlist.begin(), vhadronlist.end(), pid)) {
                 vhadronpid.push_back(pid);
                 vhadronparent.push_back(parent);
                 vhadronindex.push_back(id);
                 vhadrondaughter.push_back(daughter);
-                vhadronname.push_back(0);
+                vhadronname.push_back(" ");
             }
             // Identifying mid-state hadrons
-            else if (type != 1 && std::count(vhadronlist.begin(), vqhadronlist.end(), pid)) {
+            else if (type != 1 && std::count(vhadronlist.begin(), vhadronlist.end(), pid)) {
                 vmhadronpid.push_back(pid);
                 vmhadronparent.push_back(parent);
                 vmhadronindex.push_back(id);
@@ -363,41 +399,42 @@ int CLAS12Flow() {
         //Identifying pre-fragment quark
         for(int i = 0; i<qcount; i++) 
         {
+
             if(vquarkindex[i] == MCGenparent){
-                qusecount += 1; //counting number of useful quarks that contribute to MC string
                 vusequarkindex[qusecount] =  vquarkindex[i];
                 vusequarkpid[qusecount] = vquarkpid[i];
                 vusequarkdaughter[qusecount] = vquarkparent[i];
                 vusequarkparent[qusecount] = vquarkdaughter[i];
+
+                qusecount += 1; //counting number of useful quarks that contribute to MC string
           }
 
         }
         if(//NEED TO ADD CONDITIONS THAT SELECT pi+pi- DIHADRON EVENTS
             vhadronpid.size() == 2 &&
-            ((vhadronpid[0] == 211 && vhadronpid[1] == -211) ||
-            (vhadronpid[0] == -211 && vhadronpid[1] == 211)) &&
+            ((vhadronpid[0] == userpid1 && vhadronpid[1] == userpid2) ||
+            (vhadronpid[0] == userpid2 && vhadronpid[1] == userpid1)) &&
             qcount ==2 &&
-            MCGenpid == 92 &&
-            ) {good_dihadronflow = true;}
-        else {good_dihadronflow = false;}
+            MCGenpid == 92) {good_dihadronflow = true;}
+        else{good_dihadronflow = false;}
         
         if(do_dihadronflow == true && good_dihadronflow == true) {
                for(it=PID_map.begin(); it!=PID_map.end(); ++it){
                   if(vhadronpid[0] == it->first) {
-                      vhadronname[0] == it->second;
+                      vhadronname[0] = it->second;
                   }
                   if(vhadronpid[1] == it->first) {
-                      vhadronname[1] == it->second;
+                      vhadronname[1] = it->second;
                   }
                }
 //            endsthadron_init_names
-            ofstream file("copied.py", ios::app);
+            ofstream file("flowtest.py", ios::app);
             file << tab << finalst_cluster << "\n";
             for(int i = 0; i < 2; i++) {
-                file << tab << tab << endsthadron_init_names[i] << equalscompute << vhadronname[i] << endparan << "\n";
+                file << tab << tab << vendsthadron_init_names[i] << equalscompute << quote << vhadronname[i] << quote << endparan << "\n";
             }
             file.close();
-            break;
+//            break;
         }
     }
     return 0;
