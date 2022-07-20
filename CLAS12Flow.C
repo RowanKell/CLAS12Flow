@@ -181,7 +181,6 @@ int CLAS12Flow() {
     std::vector<int> vfphotonpid;
     std::vector<int> vfphotonparent;
     std::vector<int> vfphotondaughter;
-    std::vector<string> vfphotonname;
     
     std::vector<int> vmhadronindex;
     std::vector<int> vmhadronpid;
@@ -231,25 +230,17 @@ int CLAS12Flow() {
     vusequarkparent.push_back(0);
     
     std::vector<string> vhadronname;
-    std::vector<string> vhadronnamecomp(6);
-    string hadron_naming = "hadron";
-    std::vector<stringstream> vhadrontest(6);
-    for(int i = 0; i < 5; i++) {
-        vhadrontest[i] << hadron_naming;
-        vhadrontest[i] << i;
-        vhadrontest[i] >> vhadronnamecomp[i];
-    }
     
-    std::vector<string> vendsthadron_init_names;
-    vendsthadron_init_names.push_back("hadron0");
-    vendsthadron_init_names.push_back("hadron1");
-    vendsthadron_init_names.push_back("hadron2");
-    vendsthadron_init_names.push_back("hadron3");
-    vendsthadron_init_names.push_back("hadron4");
-    vendsthadron_init_names.push_back("hadron5");
-    vendsthadron_init_names.push_back("hadron6");
-    vendsthadron_init_names.push_back("hadron7");
-    vendsthadron_init_names.push_back("hadron8");
+//    std::vector<string> vendsthadron_init_names;
+//    vendsthadron_init_names.push_back("hadron0");
+//    vendsthadron_init_names.push_back("hadron1");
+//    vendsthadron_init_names.push_back("hadron2");
+//    vendsthadron_init_names.push_back("hadron3");
+//    vendsthadron_init_names.push_back("hadron4");
+//    vendsthadron_init_names.push_back("hadron5");
+//    vendsthadron_init_names.push_back("hadron6");
+//    vendsthadron_init_names.push_back("hadron7");
+//    vendsthadron_init_names.push_back("hadron8");
     
     std::vector<string> vmhadron_init_names;
     vmhadron_init_names.push_back("mhadron0");
@@ -272,26 +263,35 @@ int CLAS12Flow() {
     vmhadron_init_names.push_back("mhadron17");
     vmhadron_init_names.push_back("mhadron18");
     
-    std::vector<string> vfphoton_init_names;
-    vfphoton_init_names.push_back("fphoton0");
-    vfphoton_init_names.push_back("fphoton1");
-    vfphoton_init_names.push_back("fphoton2");
-    vfphoton_init_names.push_back("fphoton3");
-    vfphoton_init_names.push_back("fphoton4");
-    vfphoton_init_names.push_back("fphoton5");
-    vfphoton_init_names.push_back("fphoton6");
-    vfphoton_init_names.push_back("fphoton7");
-    vfphoton_init_names.push_back("fphoton8");
-    vfphoton_init_names.push_back("fphoton9");
-    vfphoton_init_names.push_back("fphoton10");
-    vfphoton_init_names.push_back("fphoton11");
-    vfphoton_init_names.push_back("fphoton12");
-    vfphoton_init_names.push_back("fphoton13");
-    vfphoton_init_names.push_back("fphoton14");
-    vfphoton_init_names.push_back("fphoton15");
-    vfphoton_init_names.push_back("fphoton16");
-    vfphoton_init_names.push_back("fphoton17");
-    vfphoton_init_names.push_back("fphoton18");
+//    std::vector<string> vfphoton_init_names;
+//    vfphoton_init_names.push_back("fphoton0");
+//    vfphoton_init_names.push_back("fphoton1");
+//    vfphoton_init_names.push_back("fphoton2");
+//    vfphoton_init_names.push_back("fphoton3");
+//    vfphoton_init_names.push_back("fphoton4");
+//    vfphoton_init_names.push_back("fphoton5");
+//    vfphoton_init_names.push_back("fphoton6");
+//    vfphoton_init_names.push_back("fphoton7");
+//    vfphoton_init_names.push_back("fphoton8");
+//    vfphoton_init_names.push_back("fphoton9");
+//    vfphoton_init_names.push_back("fphoton10");
+//    vfphoton_init_names.push_back("fphoton11");
+//    vfphoton_init_names.push_back("fphoton12");
+//    vfphoton_init_names.push_back("fphoton13");
+//    vfphoton_init_names.push_back("fphoton14");
+//    vfphoton_init_names.push_back("fphoton15");
+//    vfphoton_init_names.push_back("fphoton16");
+//    vfphoton_init_names.push_back("fphoton17");
+//    vfphoton_init_names.push_back("fphoton18");
+//    vfphoton_init_names.push_back("fphoton20");
+//    vfphoton_init_names.push_back("fphoton21");
+//    vfphoton_init_names.push_back("fphoton22");
+//    vfphoton_init_names.push_back("fphoton23");
+//    vfphoton_init_names.push_back("fphoton24");
+//    vfphoton_init_names.push_back("fphoton25");
+//    vfphoton_init_names.push_back("fphoton26");
+//    vfphoton_init_names.push_back("fphoton27");
+//    vfphoton_init_names.push_back("fphoton28");
     
     // MC Gen data
     int MCGenparent;
@@ -390,6 +390,12 @@ int CLAS12Flow() {
         vhadrondaughter.clear();
         vhadronpid.clear();
         
+        // Final state photons
+        vfphotonpid.clear();
+        vfphotonparent.clear();
+        vfphotonindex.clear();
+        vfphotondaughter.clear();
+        
         // Mid-State Hadron Vectors
         vmhadronindex.clear();
         vmhadronparent.clear();
@@ -452,7 +458,6 @@ int CLAS12Flow() {
                 vfphotonparent.push_back(parent);
                 vfphotonindex.push_back(id);
                 vfphotondaughter.push_back(daughter);
-                vfphotonname.push_back(" ");
             }
             // Identifying mid-state hadrons
             else if (type != 1 && id != 2 && std::count(vhadronlist.begin(), vhadronlist.end(), pid)) {
@@ -560,13 +565,37 @@ int CLAS12Flow() {
                     }
                }
 //            endsthadron_init_names
+            
+            // Code to create the right number of diagram variable names
+            
+            // Diagram variable names for endstate hadrons
+            std::vector<string> vendsthadron_init_names(vhadronname.size());
+            stringstream vhadronss;
+            for(int i = 0; i < vhadronname.size(); i++) {
+                vhadronss << "hadron";
+                vhadronss << i;
+                vhadronss >> vendsthadron_init_names[i];
+                vhadronss.str("");
+                vhadronss.clear();
+            }
+            //Diagram variable names for photons
+            std::vector<string> vfphoton_init_names(vfphotonpid.size());
+            stringstream vfphotonss;
+            for(int i = 0; i < vfphotonpid.size(); i++) {
+                vfphotonss << "fphoton";
+                vfphotonss << i;
+                vfphotonss >> vfphoton_init_names[i];
+                vfphotonss.str("");
+                vfphotonss.clear();
+            }
+            
             ofstream file("flowtest.py", ios::app);
             file << tab << mhadron_cluster << "\n";
             for(int i = 0; i < vmhadronpid.size(); i++) {
                 file << tab << tab << vmhadron_init_names[i] << equalscompute << quote << vmhadronname[i] << quote << endparan << "\n";
-                file << "# id: " << vmhadronindex[i] << "\n";
-                file << "# parent: " << vmhadronparent[i] << "\n";
-                file << "# daughter: " << vmhadrondaughter[i] << "\n";
+               file << "# id: " << vmhadronindex[i] << "\n";
+               file << "# parent: " << vmhadronparent[i] << "\n";
+               file << "# daughter: " << vmhadrondaughter[i] << "\n";
             }
             file << tab << finalst_cluster << "\n";
             for(int i = 0; i < vhadronpid.size(); i++) {
@@ -577,9 +606,9 @@ int CLAS12Flow() {
             }
             for(int i = 0; i < vfphotonpid.size(); i++) {
                 file << tab << tab << vfphoton_init_names[i] << equalscompute << quote << PID_map[22] << quote << endparan << "\n";
-                file << "# id: " << vfphotonindex[i] << "\n";
-                file << "# parent: " << vfphotonparent[i] << "\n";
-                file << "# daughter: " << vfphotondaughter[i] << "\n";
+//                file << "# id: " << vfphotonindex[i] << "\n";
+//                file << "# parent: " << vfphotonparent[i] << "\n";
+//                file << "# daughter: " << vfphotondaughter[i] << "\n";
             }
             file << tab << notmeasured_cluster << "\n";
 //            for(int i = 0;) // NEED TO WORK ON THIS
@@ -590,11 +619,8 @@ int CLAS12Flow() {
             file << "#event count: " << event_count << "\n";
             file << "#hadron count: " << vhadronpid.size() << "\n";
             file << "\n" << "testing:" << "\n";
-            for(int i = 0; i < vhadronnamecomp.size(); i++) {
-                file << vhadronnamecomp[i] << "\n";
-            }
+            file << "photon count" << vfphoton_init_names.size() << "\n";
             file.close();
-//            break;
         }
     }
     return 0;
