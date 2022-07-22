@@ -1,5 +1,5 @@
 # CLAS12Flow
-Repo for representing MC::Lund collider events in a flowchart
+Repo for representing MC::Lund collider events in a flowchart  
 Uses Diagrams by @mingrammer https://github.com/mingrammer/diagrams
 ## Current Features
 1. Reads MC::Lund bank from hipo files, extracts parent, daughter, pid, and index for each variable
