@@ -40,6 +40,7 @@ int CLAS12Flow() {
 //    userpid6 = ;
     
     bool do_dihadronflow = true;
+    bool jupyterfile = true;
     
     bool pidselect_at_least = false; // If you want at least the hadrons specified
     bool pidselect_exact = true; //If you want exact hadron endstate
@@ -200,6 +201,9 @@ int CLAS12Flow() {
     // Name variables for storing hadron names from map
     std::vector<string> vhadronname;
     std::vector<string> vmhadronname;
+    
+    // Vectors for connecting pions to photons
+    std::vector<std::array<int,2>> vphoton_pion;
 
     // MC Gen data
     int MCGenparent;
@@ -248,13 +252,19 @@ int CLAS12Flow() {
     bool pid_at_least = false;
     
     // Flowchart file creation
-    std::ifstream  src("FlowDev/test.py", std::ios::binary);
-    std::ofstream  dst("flowtest.py",   std::ios::binary);
+    string inputfile;
+    if(jupyterfile == true) {
+        inputfile = "FlowDev/jupyterdiagram.py";
+    } else {inputfile = "FlowDev/pythondiagram.py";}
+    std::ifstream  src(inputfile, std::ios::binary);
+    std::ofstream  dst("flowdiagram.py",   std::ios::binary);
     dst << src.rdbuf();
     dst.close();
     
     // Flowchart variables
-    char equalscompute [] = " = compute(";
+    char equalshadron [] = " = Compute(";
+    char equalsmhadron [] = " = Aurora(";
+    char equalsfphoton [] = " = Neptune(";
     char endparan [] = ")\n";
     char finalst_cluster [] = "with Cluster(\"Final State\"):";
     char mhadron_cluster [] = "with Cluster(\"Hadrons\"):";
@@ -509,23 +519,28 @@ int CLAS12Flow() {
                 vmhadronss.clear();
             }
             
-            ofstream file("flowtest.py", ios::app);
+
+            
+            //
+            // Code to insert python code into file
+            //
+            ofstream file("flowdiagram.py", ios::app);
             file << tab << mhadron_cluster << "\n";
             for(int i = 0; i < vmhadronpid.size(); i++) {
-                file << tab << tab << vmhadron_init_names[i] << equalscompute << quote << vmhadronname[i] << quote << endparan << "\n";
+                file << tab << tab << vmhadron_init_names[i] << equalsmhadron << quote << vmhadronname[i] << quote << endparan << "\n";
 //               file << "# id: " << vmhadronindex[i] << "\n";
 //               file << "# parent: " << vmhadronparent[i] << "\n";
 //               file << "# daughter: " << vmhadrondaughter[i] << "\n";
             }
             file << tab << finalst_cluster << "\n";
             for(int i = 0; i < vhadronpid.size(); i++) {
-                file << tab << tab << vendsthadron_init_names[i] << equalscompute << quote << vhadronname[i] << quote << endparan << "\n";
+                file << tab << tab << vendsthadron_init_names[i] << equalshadron << quote << vhadronname[i] << quote << endparan << "\n";
 //                file << "# id: " << vhadronindex[i] << "\n";
 //                file << "# parent: " << vhadronparent[i] << "\n";
 //                file << "# daughter: " << vhadrondaughter[i] << "\n";
             }
             for(int i = 0; i < vfphotonpid.size(); i++) {
-                file << tab << tab << vfphoton_init_names[i] << equalscompute << quote << PID_map[22] << quote << endparan << "\n";
+                file << tab << tab << vfphoton_init_names[i] << equalsfphoton << quote << PID_map[22] << quote << endparan << "\n";
 //                file << "# id: " << vfphotonindex[i] << "\n";
 //                file << "# parent: " << vfphotonparent[i] << "\n";
 //                file << "# daughter: " << vfphotondaughter[i] << "\n";
@@ -540,6 +555,17 @@ int CLAS12Flow() {
 //            file << "#hadron count: " << vhadronpid.size() << "\n";
 //            file << "\n" << "testing:" << "\n";
 //            file << "photon count" << vfphoton_init_names.size() << "\n";
+            
+            for(int i = 0; i < vmhadronindex.size(); i++) {
+                for(int j = 0; j < vfphotonindex.size(); j++) {
+                    if(vmhadronindex[i] == vfphotonparent[j]) {
+                        file << tab << tab << vmhadron_init_names[i] << connect_right << vfphoton_init_names[j] << "\n";
+                    }
+                }
+            }
+            if(jupyterfile == true) {
+                file << "web";
+            }
             file.close();
         }
     }
