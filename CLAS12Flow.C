@@ -253,11 +253,12 @@ int CLAS12Flow() {
     
     // Flowchart file creation
     string inputfile;
+    string outputfile = "flowdiagram.py";
     if(jupyterfile == true) {
         inputfile = "FlowDev/jupyterdiagram.py";
     } else {inputfile = "FlowDev/pythondiagram.py";}
     std::ifstream  src(inputfile, std::ios::binary);
-    std::ofstream  dst("flowdiagram.py",   std::ios::binary);
+    std::ofstream  dst(outputfile,   std::ios::binary);
     dst << src.rdbuf();
     dst.close();
     
@@ -524,7 +525,7 @@ int CLAS12Flow() {
             //
             // Code to insert python code into file
             //
-            ofstream file("flowdiagram.py", ios::app);
+            ofstream file(outputfile, ios::app);
             file << tab << mhadron_cluster << "\n";
             for(int i = 0; i < vmhadronpid.size(); i++) {
                 file << tab << tab << vmhadron_init_names[i] << equalsmhadron << quote << vmhadronname[i] << quote << endparan << "\n";
