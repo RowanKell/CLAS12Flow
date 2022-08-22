@@ -10,6 +10,191 @@
 
 using namespace std;
 
+double Pfunc(double Px, double Py, double Pz)
+{
+    return sqrt(Px*Px + Py*Py + Pz*Pz);
+}
+
+double Efunc(double M, double P)
+{
+    return sqrt(M * M + P * P);
+}
+
+double Ptfunc(double Px, double Py)
+{
+    return sqrt(Px*Px + Py*Py);
+}
+
+TVector2 PtVectfunc(TLorentzVector lv)
+{
+    TVector2 Pt;
+    double Px = lv.Px();
+    double Py = lv.Py();
+    Pt.SetX(Px);
+    Pt.SetY(Py);
+    return Pt;
+}
+class MCParticle
+{
+    public:
+    
+    //Lund bank variables
+    int pid = 0;
+    int id = 0;
+    double px = 0;
+    double py = 0;
+    double pz = 0;
+    int daughter = 0;
+    int parent = 0;
+    double mass = 0;
+    double P = 0;
+    double E = 0;
+    double vz = 0;
+    //TLorentzVector
+    TLorentzVector lv;
+    
+    //Calculations
+    double Pt = 0;
+    TVector2 PtVect;
+    
+    void inputPxPyPzM(double _px, double _py, double _pz, double _m);
+    
+    void SetParentDaughter(double _parent,double _daughter);
+    
+    void fillParticle(int _id, int _pid, double _px, double _py, double _pz, int _daughter, int _parent, double _mass, double _vz);
+    
+    void Calculate();
+    
+    void setVectors();
+};
+
+void MCParticle::inputPxPyPzM(double _px, double _py, double _pz, double _m)
+{
+    px = _px;
+    py = _py;
+    pz = _pz;
+    mass = _m;
+    
+    P = Pfunc(px, py, pz);
+    E = Efunc(mass, P);
+    
+    Pt = Ptfunc(px, py);
+    PtVect = PtVectfunc(lv);
+    
+}
+void MCParticle::SetParentDaughter(double _parent,double _daughter)
+{
+    parent = _parent;
+    daughter = _daughter;
+}
+void MCParticle::Calculate()
+{
+    P = Pfunc(px, py, pz);
+    E = Efunc(mass, P);
+    
+    lv.SetPxPyPzE(px,py,pz,E);
+    
+    Pt = Ptfunc(px, py);
+    PtVect = PtVectfunc(lv);
+}
+void MCParticle::setVectors()
+{
+    lv.SetPxPyPzE(px,py,pz,E);
+    
+    P = Pfunc(px, py, pz);
+    E = Efunc(mass, P);
+    
+    Pt = Ptfunc(px, py);
+    PtVect = PtVectfunc(lv);
+}
+void MCParticle::fillParticle(int _id, int _pid, double _px, double _py, double _pz, int _daughter, int _parent, double _mass, double _vz)
+{
+    id = _id;
+    pid = _pid;
+    px = _px;
+    py = _py;
+    pz = _pz;
+    daughter = _daughter;
+    parent = _parent;
+    mass = _mass;
+    vz = _vz;
+    
+    P = Pfunc(px, py, pz);
+    E = Efunc(mass, P);
+    
+    lv.SetPxPyPzE(px,py,pz,E);
+    
+    Pt = Ptfunc(px, py);
+    PtVect = PtVectfunc(lv);
+}
+
+class MultiParticle : public MCParticle
+{
+    public:
+    
+    vector<int> v_id;
+    vector<int> v_pid;
+    vector<double> v_px;
+    vector<double> v_py;
+    vector<double> v_pz;
+    vector<int> v_daughter;
+    vector<int> v_parent;
+    vector<double> v_mass;
+    vector<double> v_vz;
+    vector<string> v_name;
+    
+    
+    void update(int _id, int _pid, double _px, double _py, double _pz, int _daughter, int _parent, double _mass, double _vz)
+    {
+        v_id.push_back(_id);
+        v_pid.push_back(_pid);
+        v_px.push_back(_px);
+        v_py.push_back(_py);
+        v_pz.push_back(_pz);
+        v_daughter.push_back(_daughter);
+        v_parent.push_back(_parent);
+        v_mass.push_back(_mass);
+        v_vz.push_back(_vz);
+    }
+    
+};
+
+class Pidi : public MultiParticle
+{
+    public:
+    
+    int select_id = -999;
+    int count = 0;
+    
+};
+class Quark : public MultiParticle
+{
+    public:
+    
+    int initial_id = -999;
+    int final_id = -999;
+};
+class Diquark : public MultiParticle
+{
+    public:
+    
+    int select_id  = -999;
+    
+    void diquarkReset()
+    {
+        v_id.clear();
+        v_pid.clear();
+        v_px.clear();
+        v_py.clear();
+        v_pz.clear();
+        v_daughter.clear();
+        v_parent.clear();
+        v_mass.clear();
+        v_vz.clear();
+    }
+};
+
+
 int CLAS12Flow() {
     gROOT->ProcessLine("#include <vector>");
     
@@ -42,8 +227,8 @@ int CLAS12Flow() {
     bool do_dihadronflow = true;
     bool jupyterfile = true;
     
-    bool pidselect_at_least = false; // If you want at least the hadrons specified
-    bool pidselect_exact = true; //If you want exact hadron endstate
+    bool pidselect_at_least = true; // If you want at least the hadrons specified
+    bool pidselect_exact = false; //If you want exact hadron endstate
     
     std::vector<int> vuserpid;
     
@@ -146,6 +331,14 @@ int CLAS12Flow() {
     int daughter;
     int parent;
     int type;
+    
+    double px; 
+    double py; 
+    double pz; 
+    double mass; 
+    double vz; 
+    double P;
+    double E;
     
     // Initializing counting variables
     int qcount;
@@ -285,6 +478,21 @@ int CLAS12Flow() {
         if (c12->getDetParticles().empty())
             continue;
         
+        MCParticle electron;
+        MCParticle proton;
+        MCParticle Lund;
+
+        Pidi photon;
+        Pidi piplus;
+        Pidi piminus;
+
+        Quark quark;
+
+        Pidi diquark;
+        
+        MultiParticle MidHadron;
+        MultiParticle EndHadron;
+        
         qcount = 0;
         qusecount = 0;
         diquarkcount = 0;
@@ -335,106 +543,113 @@ int CLAS12Flow() {
             auto mcparticles = c12->mcparts();
             id = mcparticles->getIndex(imc);
             pid = mcparticles->getPid(imc);
+            px = mcparticles->getPx(imc);
+            py = mcparticles->getPy(imc);
+            pz = mcparticles->getPz(imc);
             daughter = mcparticles->getDaughter(imc);
             parent = mcparticles->getParent(imc);
-            type = mcparticles->getType(imc);
+            mass = mcparticles->getMass(imc);
+            P = Pfunc(px,py,pz);
+            E = Efunc(mass,P);
+            vz = mcparticles->getVz(imc);
             
-            // Identifying Lund String
-            if (pid==92 or pid==91) { 
-                MCGenindex += 1;
-                MCGenparent = parent;
-                MCGendaughter = daughter;
-                MCGenindex = id;
-                MCGenpid = pid;
+            if(pid==11 && parent==1){
+                electron.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                electron.setVectors();
             }
-            // Identifying pre-fragment quark candidates
-            else if (std::count(vquarklist.begin(), vquarklist.end(), pid)) {
-                qcount += 1;
-                vquarkindex.push_back(id);
-                vquarkparent.push_back(parent);
-                vquarkdaughter.push_back(daughter);
-                vquarkpid.push_back(pid);
+            //pi+
+            else if(pid==userpid1){
+                piplus.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                piplus.update(id, pid, px, py, pz, daughter, parent, 
+                              mass, vz);
             }
-            // Identifying diquark
-            else if (std::count(vdiquarklist.begin(), vdiquarklist.end(), pid) && parent == 2) {
-                diquarkcount += 1;
-                vdiquarkpid.push_back(pid);
-                vdiquarkparent.push_back(parent);
-                vdiquarkindex.push_back(id);
-                vdiquarkdaughter.push_back(daughter);
+            //pi-
+            else if(pid==userpid2){
+                piminus.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                piminus.update(id, pid, px, py, pz, daughter, parent, 
+                              mass, vz);
             }
-            // Identifying endstate hadrons
-            else if (type == 1 && parent != 2 && std::count(vhadronlist.begin(), vhadronlist.end(), pid)) {
-                vhadronpid.push_back(pid);
-                vhadronparent.push_back(parent);
-                vhadronindex.push_back(id);
-                vhadrondaughter.push_back(daughter);
-                vhadronname.push_back(" ");
+            //all quarks
+            else if(std::count(vquarklist.begin(), vquarklist.end(), pid)){
+                quark.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                quark.update(id, pid, px, py, pz, daughter, parent, 
+                              mass, vz);
             }
-            // Identifying final state photons
-            else if (type == 1 && pid == 22) {
-                vfphotonpid.push_back(pid);
-                vfphotonparent.push_back(parent);
-                vfphotonindex.push_back(id);
-                vfphotondaughter.push_back(daughter);
+            //MCParticle
+            else if(pid==92 || pid == 91){
+                Lund.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                Lund.setVectors();
             }
-            // Identifying mid-state hadrons
-            else if (type != 1 && id != 2 && std::count(vhadronlist.begin(), vhadronlist.end(), pid)) {
-                vmhadronpid.push_back(pid);
-                vmhadronparent.push_back(parent);
-                vmhadronindex.push_back(id);
-                vmhadrondaughter.push_back(daughter);
-                vmhadronname.push_back(" ");
+            
+            //Diquark
+            else if(std::count(vdiquarklist.begin(), vdiquarklist.end(), pid)){
+                diquark.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                diquark.update(id, pid, px, py, pz, daughter, parent, 
+                              mass, vz);
             }
-            // Identifying virtual photon
-            else if (pid == 22 && parent == 1) {
-                vphotonindex = id;
-                vphotonpid = pid;
-                vphotonparent = parent;
-                vphotondaughter = daughter;
+            //Photon
+            else if(pid == 22 && type == 1){
+                photon.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                photon.update(id, pid, px, py, pz, daughter, parent, 
+                              mass, vz);
             }
-            // Identifying Beam Electron
-            else if (id == 1) {
-                elec_count += 1;
-                belectronindex = id;
-                belectronpid = pid;
-                belectronparent = parent;
-                belectrondaughter = daughter;
+            //Proton target
+            else if(id == 2){
+                proton.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                proton.setVectors();
             }
-            // Identifying Scattered Electron
-            else if (pid == 11 && parent == 1) {
-                elec_count += 1;
-                selectronindex = id;
-                selectronpid = pid;
-                selectronparent = parent;
-                selectrondaughter = daughter;
+            // Mid Hadrons
+            else if((std::count(vhadronlist.begin(), vhadronlist.end(), pid))
+                    && (parent == 2)) {
+                MidHadron.fillParticle(id, pid, px, py, pz, 
+                                       daughter, parent, mass, vz);
+                MidHadron.update(id, pid, px, py, pz, daughter, parent, 
+                              mass, vz);
+                MidHadron.v_name.push_back(" ");
             }
-            // Identifying Target Proton
-            else if (id == 2) {
-                targetindex = id;
-                targetpid = pid;
-                targetparent = parent;
-                targetdaughter = daughter;
+            //End Hadrons
+            else if((std::count(vhadronlist.begin(), vhadronlist.end(), pid))
+                    && (parent != 2)) {
+                EndHadron.fillParticle(id, pid, px, py, pz, 
+                                       daughter, parent, mass, vz);
+                EndHadron.update(id, pid, px, py, pz, daughter, parent, 
+                              mass, vz);
+                EndHadron.v_name.push_back(" ");
             }
         }
         
-        //Identifying pre-fragment quark
-        for(int i = 0; i<qcount; i++) 
-        {
-
-            if(vquarkindex[i] == MCGenparent){
-                vusequarkindex[qusecount] =  vquarkindex[i];
-                vusequarkpid[qusecount] = vquarkpid[i];
-                vusequarkdaughter[qusecount] = vquarkparent[i];
-                vusequarkparent[qusecount] = vquarkdaughter[i];
-
-                qusecount += 1; //counting number of useful quarks that contribute to MC string
-          }
-
+        //Selecting pions that come from Lund particle
+        for(int i = 0; i < piplus.v_id.size(); i++) {
+            if(piplus.v_parent[i] == Lund.id) {
+                piplus.select_id = i;
+                piplus.count = piplus.v_id.size();
+            }
         }
+        for(int i = 0; i < piminus.v_id.size(); i++) {
+            if(piminus.v_parent[i] == Lund.id) {
+                piminus.select_id = i;
+                piminus.count = piminus.v_id.size();
+            }
+        }
+        
+        //Selecting initial quark
+        for(int i = 0; i < quark.v_id.size(); i++) {
+            if(quark.v_parent[i] == 0) {
+                quark.final_id = i;
+            }
+        }
+        
+        //Selecting diquark
+        for(int i = 0; i < diquark.v_id.size(); i++) {
+            if(diquark.v_parent[i] == 2) {
+                diquark.select_id = i;
+            }
+        }
+
+        //NEED TO SELECT OTHER HADRONS?
         if(pidselect_at_least == true) {
             for(int i = 0; i < userpidN; i++) {
-                if(std::count(vhadronpid.begin(), vhadronpid.end(), vuserpid[i])) {
+                if(piplus.select_id != -999 && piminus.select_id != -999) {
                     pid_at_least = true;
                 }
                 else {
@@ -444,8 +659,8 @@ int CLAS12Flow() {
             }
         }
         else if(pidselect_exact == true) {
-            for(int i = 0; i < vhadronpid.size(); i++) {
-                if(std::count(vuserpid.begin(),vuserpid.end(), vhadronpid[i]) && vhadronpid.size() == userpidN) { //checking to see if every hadron is specified by user, and if amount is correct
+            for(int i = 0; i < EndHadron.v_pid.size(); i++) {
+                if(piplus.select_id != -999 && piminus.select_id != -999 && (piplus.count + piminus.count) == userpidN) { //checking to see if every hadron is specified by user, and if amount is correct
                     pid_exact = true;
                 }
                 else {
@@ -456,41 +671,42 @@ int CLAS12Flow() {
         }
         
         if(pidselect_exact == true && // this is for exact inputs
-            pid_exact == true &&
-//            pid_at_least == true &&
-            qcount ==2 &&
-            MCGenpid == 92 &&
-            elec_count == 2
+            pid_exact == true
         ) {good_dihadronflow = true;}
         else if(pidselect_at_least == true && //this is for at least inputs
-                pid_at_least == true &&
-                qcount == 2 && 
-                MCGenpid == 92 &&
-                elec_count == 2
+                pid_at_least == true
                ) {good_dihadronflow = true;}
         else{good_dihadronflow = false;}
         
         if(do_dihadronflow == true && good_dihadronflow == true) {
                for(it=PID_map.begin(); it!=PID_map.end(); ++it){
-                   for(int i = 0; i < vhadronpid.size(); i++) {
-                       if(vhadronpid[i] == it->first) {
-                          vhadronname[i] = it->second;
+                   
+                   for(int i = 0; i < EndHadron.v_id.size(); i++) {
+                       cout << it->first << ", " << it->second << ", " << "EndHadron pid: " << EndHadron.v_pid[i] << '\n';
+                       if(EndHadron.v_pid[i] == it->first) {
+                           cout << "Satisfied if statement\n";
+                          EndHadron.v_name[i] = it->second;
+                           cout << "Assigned EndHadron #" << i << " name: " << it->second << '\n';
                       }
-                    for(int i = 0; i < vmhadronpid.size(); i++) {
-                       if(vmhadronpid[i] == it->first) {
-                          vmhadronname[i] = it->second;
+                    for(int i = 0; i < MidHadron.v_id.size(); i++) {
+                       if(MidHadron.v_pid[i] == it->first) {
+                          MidHadron.v_name[i] = it->second;
+                       cout << it->first << ", " << it->second << ", " << "MidHadron pid: " << EndHadron.v_pid[i] << '\n';
+                           cout << "Assigned MidHadron #" << i << " name: " << it->second << '\n';
                        }
                       }
                     }
                }
+            cout << "Finished map loop\n";
 //            endsthadron_init_names
             
             // Code to create the right number of diagram variable names
             
             // Diagram variable names for endstate hadrons
-            std::vector<string> vendsthadron_init_names(vhadronname.size());
+            std::vector<string> vendsthadron_init_names(EndHadron.v_id.size());
             stringstream vhadronss;
-            for(int i = 0; i < vhadronname.size(); i++) {
+            for(int i = 0; i < EndHadron.v_id.size(); i++) {
+                cout << "Entered EndHadron name loop\n";
                 vhadronss << "hadron";
                 vhadronss << i;
                 vhadronss >> vendsthadron_init_names[i];
@@ -499,9 +715,10 @@ int CLAS12Flow() {
             }
             
             //Diagram variable names for photons
-            std::vector<string> vfphoton_init_names(vfphotonpid.size());
+            std::vector<string> vfphoton_init_names(photon.v_id.size());
             stringstream vfphotonss;
-            for(int i = 0; i < vfphotonpid.size(); i++) {
+            for(int i = 0; i < photon.v_id.size(); i++) {
+                cout << "Entering Photon name loop\n";
                 vfphotonss << "fphoton";
                 vfphotonss << i;
                 vfphotonss >> vfphoton_init_names[i];
@@ -510,9 +727,10 @@ int CLAS12Flow() {
             }
             
             //Diagram variable names for mhadrons
-            std::vector<string> vmhadron_init_names(vmhadronname.size());
+            std::vector<string> vmhadron_init_names(MidHadron.v_id.size());
             stringstream vmhadronss;
-            for(int i = 0; i < vmhadronname.size(); i++) {
+            for(int i = 0; i < MidHadron.v_id.size(); i++) {
+                cout << "Entered MidHadron name loop\n";
                 vmhadronss << "mhadron";
                 vmhadronss << i;
                 vmhadronss >> vmhadron_init_names[i];
@@ -527,20 +745,20 @@ int CLAS12Flow() {
             //
             ofstream file(outputfile, ios::app);
             file << tab << mhadron_cluster << "\n";
-            for(int i = 0; i < vmhadronpid.size(); i++) {
+            for(int i = 0; i < MidHadron.v_id.size(); i++) {
                 file << tab << tab << vmhadron_init_names[i] << equalsmhadron << quote << vmhadronname[i] << quote << endparan << "\n";
 //               file << "# id: " << vmhadronindex[i] << "\n";
 //               file << "# parent: " << vmhadronparent[i] << "\n";
 //               file << "# daughter: " << vmhadrondaughter[i] << "\n";
             }
             file << tab << finalst_cluster << "\n";
-            for(int i = 0; i < vhadronpid.size(); i++) {
+            for(int i = 0; i < EndHadron.v_id.size(); i++) {
                 file << tab << tab << vendsthadron_init_names[i] << equalshadron << quote << vhadronname[i] << quote << endparan << "\n";
 //                file << "# id: " << vhadronindex[i] << "\n";
 //                file << "# parent: " << vhadronparent[i] << "\n";
 //                file << "# daughter: " << vhadrondaughter[i] << "\n";
             }
-            for(int i = 0; i < vfphotonpid.size(); i++) {
+            for(int i = 0; i < photon.v_id.size(); i++) {
                 file << tab << tab << vfphoton_init_names[i] << equalsfphoton << quote << PID_map[22] << quote << endparan << "\n";
 //                file << "# id: " << vfphotonindex[i] << "\n";
 //                file << "# parent: " << vfphotonparent[i] << "\n";
@@ -557,9 +775,9 @@ int CLAS12Flow() {
 //            file << "\n" << "testing:" << "\n";
 //            file << "photon count" << vfphoton_init_names.size() << "\n";
             
-            for(int i = 0; i < vmhadronindex.size(); i++) {
-                for(int j = 0; j < vfphotonindex.size(); j++) {
-                    if(vmhadronindex[i] == vfphotonparent[j]) {
+            for(int i = 0; i < MidHadron.v_id.size(); i++) {
+                for(int j = 0; j < photon.v_id.size(); j++) {
+                    if(MidHadron.v_id[i] == photon.v_parent[j]) {
                         file << tab << tab << vmhadron_init_names[i] << connect_right << vfphoton_init_names[j] << "\n";
                     }
                 }
@@ -568,6 +786,7 @@ int CLAS12Flow() {
                 file << "web";
             }
             file.close();
+            break;
         }
     }
     return 0;
