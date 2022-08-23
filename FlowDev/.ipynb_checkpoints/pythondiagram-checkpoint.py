@@ -16,5 +16,3 @@ with Diagram("Particle Collision", show=False): # Keep
         proton = A4B("proton")  # Keep
         electron = Chime("electron") # Keep
     with Cluster("Proton"): # Keep
-        diquark = Compute("diquark") # Keep
-        quark = AMI("quark") # Keep
