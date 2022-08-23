@@ -163,7 +163,8 @@ class Pidi : public MultiParticle
 {
     public:
     
-    int select_id = -999;
+    int select_id1 = -999;
+    int select_id2 = -999;
     int count = 0;
     
 };
@@ -483,15 +484,15 @@ int CLAS12Flow() {
         MCParticle Lund;
 
         Pidi photon;
-        Pidi piplus;
-        Pidi piminus;
+//        Pidi piplus;
+//        Pidi piminus;
 
         Quark quark;
 
         Pidi diquark;
         
-        MultiParticle MidHadron;
-        MultiParticle EndHadron;
+        Pidi MidHadron;
+        Pidi EndHadron;
         
         qcount = 0;
         qusecount = 0;
@@ -537,7 +538,7 @@ int CLAS12Flow() {
         
         // Hadron name vector
         vhadronname.clear();
-        
+        cout << "Starting event #" << event_count << '\n';
         // Loop over MC::Lund entries in this event using index -> ID = idx_MCLund
         for (auto imc = 0; imc < c12->getBank(idx_MCLund)->getRows(); imc++) {
             auto mcparticles = c12->mcparts();
@@ -558,6 +559,7 @@ int CLAS12Flow() {
                 electron.setVectors();
             }
             //pi+
+            /*
             else if(pid==userpid1){
                 piplus.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
                 piplus.update(id, pid, px, py, pz, daughter, parent, 
@@ -568,7 +570,7 @@ int CLAS12Flow() {
                 piminus.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
                 piminus.update(id, pid, px, py, pz, daughter, parent, 
                               mass, vz);
-            }
+            }*/
             //all quarks
             else if(std::count(vquarklist.begin(), vquarklist.end(), pid)){
                 quark.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
@@ -614,21 +616,20 @@ int CLAS12Flow() {
                                        daughter, parent, mass, vz);
                 EndHadron.update(id, pid, px, py, pz, daughter, parent, 
                               mass, vz);
+                cout << "Updated Endhadron with pid: " << pid << '\n';
                 EndHadron.v_name.push_back(" ");
             }
         }
         
         //Selecting pions that come from Lund particle
-        for(int i = 0; i < piplus.v_id.size(); i++) {
-            if(piplus.v_parent[i] == Lund.id) {
-                piplus.select_id = i;
-                piplus.count = piplus.v_id.size();
+        for(int i = 0; i < EndHadron.v_id.size(); i++) {
+            if(EndHadron.v_parent[i] == Lund.id && EndHadron.v_pid[i] == userpid1) {
+                EndHadron.select_id1 = i;
+                EndHadron.count += 1;
             }
-        }
-        for(int i = 0; i < piminus.v_id.size(); i++) {
-            if(piminus.v_parent[i] == Lund.id) {
-                piminus.select_id = i;
-                piminus.count = piminus.v_id.size();
+            if(EndHadron.v_parent[i] == Lund.id && EndHadron.v_pid[i] == userpid2) {
+                EndHadron.select_id2 = i;
+                EndHadron.count += 1;
             }
         }
         
@@ -642,14 +643,14 @@ int CLAS12Flow() {
         //Selecting diquark
         for(int i = 0; i < diquark.v_id.size(); i++) {
             if(diquark.v_parent[i] == 2) {
-                diquark.select_id = i;
+                diquark.select_id1 = i;
             }
         }
 
         //NEED TO SELECT OTHER HADRONS?
         if(pidselect_at_least == true) {
             for(int i = 0; i < userpidN; i++) {
-                if(piplus.select_id != -999 && piminus.select_id != -999) {
+                if(EndHadron.select_id1 != -999 && EndHadron.select_id2 != -999) {
                     pid_at_least = true;
                 }
                 else {
@@ -660,7 +661,7 @@ int CLAS12Flow() {
         }
         else if(pidselect_exact == true) {
             for(int i = 0; i < EndHadron.v_pid.size(); i++) {
-                if(piplus.select_id != -999 && piminus.select_id != -999 && (piplus.count + piminus.count) == userpidN) { //checking to see if every hadron is specified by user, and if amount is correct
+                if(EndHadron.select_id1 != -999 && EndHadron.select_id2 != -999 && EndHadron.count == userpidN) { //checking to see if every hadron is specified by user, and if amount is correct
                     pid_exact = true;
                 }
                 else {
@@ -707,13 +708,18 @@ int CLAS12Flow() {
             stringstream vhadronss;
             for(int i = 0; i < EndHadron.v_id.size(); i++) {
                 cout << "Entered EndHadron name loop\n";
+                cout << "EndHadro.v_id.size() is: " << EndHadron.v_id.size() << '\n';
                 vhadronss << "hadron";
+                cout << "Test1 at i = " << i << "\n";
                 vhadronss << i;
+                cout << "Test2 at i = " << i << "\n";
                 vhadronss >> vendsthadron_init_names[i];
+                cout << "Test3 at i = " << i << "\n";
                 vhadronss.str("");
+                cout << "Test4 at i = " << i << "\n";
                 vhadronss.clear();
+                cout << "Test5 at i = " << i << "\n";
             }
-            
             //Diagram variable names for photons
             std::vector<string> vfphoton_init_names(photon.v_id.size());
             stringstream vfphotonss;
