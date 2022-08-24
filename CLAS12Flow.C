@@ -50,6 +50,7 @@ class MCParticle
     double P = 0;
     double E = 0;
     double vz = 0;
+    int type = 0;
     //TLorentzVector
     TLorentzVector lv;
     
@@ -61,7 +62,7 @@ class MCParticle
     
     void SetParentDaughter(double _parent,double _daughter);
     
-    void fillParticle(int _id, int _pid, double _px, double _py, double _pz, int _daughter, int _parent, double _mass, double _vz);
+    void fillParticle(int _id, int _pid, double _px, double _py, double _pz, int _daughter, int _parent, double _mass, double _vz, int _type);
     
     void Calculate();
     
@@ -107,7 +108,7 @@ void MCParticle::setVectors()
     Pt = Ptfunc(px, py);
     PtVect = PtVectfunc(lv);
 }
-void MCParticle::fillParticle(int _id, int _pid, double _px, double _py, double _pz, int _daughter, int _parent, double _mass, double _vz)
+void MCParticle::fillParticle(int _id, int _pid, double _px, double _py, double _pz, int _daughter, int _parent, double _mass, double _vz, int _type)
 {
     id = _id;
     pid = _pid;
@@ -118,6 +119,7 @@ void MCParticle::fillParticle(int _id, int _pid, double _px, double _py, double 
     parent = _parent;
     mass = _mass;
     vz = _vz;
+    type = _type;
     
     P = Pfunc(px, py, pz);
     E = Efunc(mass, P);
@@ -142,9 +144,10 @@ class MultiParticle : public MCParticle
     vector<double> v_mass;
     vector<double> v_vz;
     vector<string> v_name;
+    vector<int> v_type;
     
     
-    void update(int _id, int _pid, double _px, double _py, double _pz, int _daughter, int _parent, double _mass, double _vz)
+    void update(int _id, int _pid, double _px, double _py, double _pz, int _daughter, int _parent, double _mass, double _vz, int _type)
     {
         v_id.push_back(_id);
         v_pid.push_back(_pid);
@@ -155,6 +158,7 @@ class MultiParticle : public MCParticle
         v_parent.push_back(_parent);
         v_mass.push_back(_mass);
         v_vz.push_back(_vz);
+        v_type.push_back(_type);
     }
     
 };
@@ -219,8 +223,8 @@ int CLAS12Flow() {
 //    int userpid5;
 //    int userpid6;
     
-    userpid1 = 211;
-    userpid2 = -211;
+    userpid1 = 221;
+    userpid2 = 221;
 //    userpid3 = ;
 //    userpid4 = ;
 //    userpid5 = ;
@@ -342,13 +346,7 @@ int CLAS12Flow() {
     double P;
     double E;
     
-    // Initializing counting variables
-    int qcount;
-    int qusecount;
-    int diquarkcount;
-    int MCGenindex;
-    int elec_count;
-    int event_count;
+    int event_count = -1;
     
     // Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
@@ -358,93 +356,17 @@ int CLAS12Flow() {
     auto idaughter=config_c12->getBankOrder(idx_MCLund,"daughter");
     auto iparent=config_c12->getBankOrder(idx_MCLund,"parent");
     
-    // Vectors for storing particle info for each event
-    std::vector<int> vpid;
-    std::vector<int> vdaughter;
-    std::vector<int> vparent;
-    
-    std::vector<int> vquarkindex;
-    std::vector<int> vquarkpid;    
-    std::vector<int> vquarkparent;
-    std::vector<int> vquarkdaughter;
-    
-    std::vector<int> vhadronindex;
-    std::vector<int> vhadronpid;
-    std::vector<int> vhadronparent;
-    std::vector<int> vhadrondaughter;
-    
-    std::vector<int> vfphotonindex;
-    std::vector<int> vfphotonpid;
-    std::vector<int> vfphotonparent;
-    std::vector<int> vfphotondaughter;
-    
-    std::vector<int> vmhadronindex;
-    std::vector<int> vmhadronpid;
-    std::vector<int> vmhadronparent;
-    std::vector<int> vmhadrondaughter;
-    
-    std::vector<int> vdiquarkindex;
-    std::vector<int> vdiquarkpid;
-    std::vector<int> vdiquarkdaughter;
-    std::vector<int> vdiquarkparent;
-    
-    std::vector<int> vusequarkindex(6);
-    std::vector<int> vusequarkpid(6);
-    std::vector<int> vusequarkdaughter(6);
-    std::vector<int> vusequarkparent(6);
     
     // Name variables for storing hadron names from map
     std::vector<string> vhadronname;
     std::vector<string> vmhadronname;
     
-    // Vectors for connecting pions to photons
-    std::vector<std::array<int,2>> vphoton_pion;
 
-    // MC Gen data
-    int MCGenparent;
-    int MCGendaughter;
-    int MCGenpid;
-    
-    // Quark data
-    int quarkindex;
-    int quarkpid;
-    int quarkparent;
-    int quarkdaughter;
-    
-    // Diquark data
-    int diquarkindex;
-    int diquarkpid;
-    int diquarkparent;
-    int diquarkdaughter;
-    
-    // Virtual poton data;
-    int vphotonindex;
-    int vphotonpid;
-    int vphotonparent;
-    int vphotondaughter;
-    
-    // Beam Electron;
-    int belectronindex;
-    int belectronpid;
-    int belectronparent;
-    int belectrondaughter;
-        
-    // Scattered Electron
-    int selectronindex;
-    int selectronpid;
-    int selectronparent;
-    int selectrondaughter;
-    
-    // Target
-    int targetindex;
-    int targetpid;
-    int targetparent;
-    int targetdaughter;
     
     // Selection
     bool good_dihadronflow = false;
     bool pid_exact = false;
-    bool pid_at_least = false;
+    bool pid_at_least = true;
     
     // Flowchart file creation
     string inputfile;
@@ -463,10 +385,14 @@ int CLAS12Flow() {
     char equalsfphoton [] = " = Neptune(";
     char endparan [] = ")\n";
     char finalst_cluster [] = "with Cluster(\"Final State\"):";
+    char final_hadron_cluster [] = "with Cluster(\"Hadrons\"):";
     char mhadron_cluster [] = "with Cluster(\"Hadrons\"):";
     char notmeasured_cluster [] = "with Cluster(\"Not Measured\"):";
+    char final_photon_cluster [] = "with Cluster(\"Decay Photon Pairs\"):";
+    char post_collision_cluster [] = "with Cluster(\"Post Collision\"):";
     char connect_right [] = " >> ";
     char connect_left [] = " << ";
+    char connect [] = " - ";
     char endline [] = "\n";
     char tab [] = "    ";
     char quote [] = "\"";
@@ -480,14 +406,11 @@ int CLAS12Flow() {
         event_count += 1;
         if (c12->getDetParticles().empty())
             continue;
-        
         MCParticle electron;
         MCParticle proton;
         MCParticle Lund;
 
         Pidi photon;
-//        Pidi piplus;
-//        Pidi piminus;
 
         Quark quark;
 
@@ -496,15 +419,8 @@ int CLAS12Flow() {
         Pidi MidHadron;
         Pidi EndHadron;
         
-        qcount = 0;
-        qusecount = 0;
-        diquarkcount = 0;
-        MCGenindex = 0;
-        elec_count = 0;
-        
         // Hadron name vector
         vhadronname.clear();
-        cout << "Starting event #" << event_count << '\n';
         // Loop over MC::Lund entries in this event using index -> ID = idx_MCLund
         for (auto imc = 0; imc < c12->getBank(idx_MCLund)->getRows(); imc++) {
             auto mcparticles = c12->mcparts();
@@ -519,73 +435,60 @@ int CLAS12Flow() {
             P = Pfunc(px,py,pz);
             E = Efunc(mass,P);
             vz = mcparticles->getVz(imc);
+            type = mcparticles->getType(imc);
             
             if(pid==11 && parent==1){
-                electron.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                electron.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz, type);
                 electron.setVectors();
             }
-            //pi+
-            /*
-            else if(pid==userpid1){
-                piplus.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
-                piplus.update(id, pid, px, py, pz, daughter, parent, 
-                              mass, vz);
-            }
-            //pi-
-            else if(pid==userpid2){
-                piminus.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
-                piminus.update(id, pid, px, py, pz, daughter, parent, 
-                              mass, vz);
-            }*/
             //all quarks
             else if(std::count(vquarklist.begin(), vquarklist.end(), pid)){
-                quark.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                quark.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz, type);
                 quark.update(id, pid, px, py, pz, daughter, parent, 
-                              mass, vz);
+                              mass, vz, type);
                 quark.v_name.push_back(" ");
             }
             //MCParticle
             else if(pid==92 || pid == 91){
-                Lund.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                Lund.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz, type);
                 Lund.setVectors();
             }
             
             //Diquark
             else if(std::count(vdiquarklist.begin(), vdiquarklist.end(), pid)){
-                diquark.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                diquark.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz, type);
                 diquark.update(id, pid, px, py, pz, daughter, parent, 
-                              mass, vz);
+                              mass, vz, type);
                 diquark.exist = true;
             }
             //Photon
-            else if(pid == 22 && type == 1){
-                photon.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+            if(pid == 22 && type == 1){
+                photon.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz, type);
                 photon.update(id, pid, px, py, pz, daughter, parent, 
-                              mass, vz);
+                              mass, vz, type);
             }
             //Proton target
             else if(id == 2){
-                proton.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                proton.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz, type);
                 proton.setVectors();
             }
             // Mid Hadrons
             else if((std::count(vhadronlist.begin(), vhadronlist.end(), pid))
                     && (parent == 2)) {
                 MidHadron.fillParticle(id, pid, px, py, pz, 
-                                       daughter, parent, mass, vz);
+                                       daughter, parent, mass, vz, type);
                 MidHadron.update(id, pid, px, py, pz, daughter, parent, 
-                              mass, vz);
+                              mass, vz, type);
                 MidHadron.v_name.push_back(" ");
             }
             //End Hadrons
             else if((std::count(vhadronlist.begin(), vhadronlist.end(), pid))
                     && (parent != 2)) {
                 EndHadron.fillParticle(id, pid, px, py, pz, 
-                                       daughter, parent, mass, vz);
+                                       daughter, parent, mass, vz, type);
                 EndHadron.update(id, pid, px, py, pz, daughter, parent, 
-                              mass, vz);
+                              mass, vz, type);
                 EndHadron.v_name.push_back(" ");
-                //cout << "Added pid: " << pid << "with px, py, pz: " << px << ", " << py << ", " << pz << " to EndHadron\n";
             }
         }
         
@@ -661,7 +564,6 @@ int CLAS12Flow() {
                       MidHadron.v_name[i] = it->second;
                         }
                     }
-               cout << "quark size" << quark.v_id.size() << '\n';
                 for(int i = 0; i < quark.v_id.size(); i++) {
                     if(quark.v_pid[i] == it->first) {
                         quark.v_name[i] = it->second;
@@ -676,7 +578,6 @@ int CLAS12Flow() {
             std::vector<string> vendsthadron_init_names(EndHadron.v_id.size());
             stringstream vhadronss;
             for(int i = 0; i < EndHadron.v_id.size(); i++) {
-                cout << "created hadron name #" << i << '\n';
                 vhadronss << "hadron";
                 vhadronss << i;
                 vhadronss >> vendsthadron_init_names[i];
@@ -716,44 +617,113 @@ int CLAS12Flow() {
             // Code to insert python code into file
             //
             ofstream file(outputfile, ios::app);
-            if(diquark.exist) {
+            
+            //Module for writing when there is a diquark, quark and meson
+            if(diquark.exist && MidHadron.v_id.size() > 0) {
                 file << tab << tab << "quark = AMI(\"" << quark.v_name[quark.final_id] << quote << endparan << "\n";
-                file << tab << tab << "diquark = Compute(\"diquark " << pid << quote << endparan << "\n";
+                file << tab << tab << "double_quark = AMI(\"";
+                if(quark.v_pid[quark.final_id] == 1) {
+                    file << "Up, Up\")\n";
+                }
+                else if(quark.v_pid[quark.final_id] == 2) {
+                    file << "Up, Down\")\n";
+                }
+                file << tab << "Lund = Compute(\"Lund\")" << "\n";
+//                file << tab << "quark = AMI(\"" << quark.v_name[quark.final_id] << quote << endparan << "\n";
+                file << tab << post_collision_cluster << "\n";
+                file << tab << tab << "struck_quark = AMI(\"Struck " << quark.v_name[quark.final_id] << quote << endparan << "\n";
+                file << tab << tab << "diquark = Compute(\"diquark " << diquark.v_pid[diquark.select_id1] << quote << endparan << "\n";
+                for(int i = 0; i < MidHadron.v_id.size(); i++) {
+                    file << tab << tab << vmhadron_init_names[i] << equalsmhadron << quote << MidHadron.v_name[i] << quote << endparan << "\n";
+                }
+                
+                
+            }
+            // Module for writing when quark and diquark no meson
+            else if(diquark.exist && MidHadron.v_id.size() == 0 ) {
+                file << tab << tab << "diquark = Compute(\"diquark " << diquark.pid << quote << endparan << "\n";
+                file << tab << tab << "quark = AMI(\"" << quark.v_name[quark.final_id] << quote << endparan << "\n";
+                file << tab << "Lund = Compute(\"Lund\")" << "\n";
+                file << tab << "struck_quark = AMI(\"Struck " << quark.v_name[quark.final_id] << quote << endparan << "\n";
             }
             //MidHadron writing
-            cout << "MidHadron size: " << MidHadron.v_id.size() << '\n';
-            if(MidHadron.v_id.size() > 0) {
+/*            if(MidHadron.v_id.size() > 0) {
                 file << tab << mhadron_cluster << "\n";
                 for(int i = 0; i < MidHadron.v_id.size(); i++) {
                     file << tab << tab << vmhadron_init_names[i] << equalsmhadron << quote << MidHadron.v_name[i] << quote << endparan << "\n";
                 }
-            }
-            cout << "Passed Midhadron writing\n";
+            }*/
             //Final State writing
             file << tab << finalst_cluster << "\n";
+            file << tab << tab << final_hadron_cluster << "\n";
             for(int i = 0; i < EndHadron.v_id.size(); i++) {
-                cout << "Entering EndHadron writing Loop\n";
-                file << tab << tab << vendsthadron_init_names[i] << equalshadron << quote << EndHadron.v_name[i] << quote << endparan << "\n";
+                file << tab << tab << tab << vendsthadron_init_names[i] << equalshadron << quote << EndHadron.v_name[i] << quote << endparan << "\n";
             }
             
             //photon endstates:
             if(photon.v_id.size() > 0) {
+                file << tab << tab << final_photon_cluster << "\n";
                 for(int i = 0; i < photon.v_id.size(); i++) {
-                    file << tab << tab << vfphoton_init_names[i] << equalsfphoton << quote << PID_map[22] << quote << endparan << "\n";
+                    file << tab << tab << tab << vfphoton_init_names[i] << equalsfphoton << quote << PID_map[22] << quote << endparan << "\n";
                 }
             }
-            
-            file << tab << notmeasured_cluster << "\n";
-            if(MidHadron.v_id.size() > 0 && photon.v_id.size() > 0) {
-                for(int i = 0; i < MidHadron.v_id.size(); i++) {
-                    for(int j = 0; j < photon.v_id.size(); j++) {
-                        if(MidHadron.v_id[i] == photon.v_parent[j]) {
-                            file << tab << tab << vmhadron_init_names[i] << connect_right << vfphoton_init_names[j] << "\n";
+            file << tab << tab << "scattered_electron = Chime(\"Scattered Electron\")\n";
+            //connecting decay particles to their photons
+            if(EndHadron.v_id.size() > 0 && photon.v_id.size() > 0) {
+                for(int i = 0; i < EndHadron.v_id.size(); i++) {
+                    for(int j = 0; j < photon.v_id.size(); j += 2) {
+                        if(EndHadron.v_id[i] == photon.v_parent[j]) {
+                            file << tab << vendsthadron_init_names[i] << connect_right << vfphoton_init_names[j + 1] << "\n";
+                            file << tab << vfphoton_init_names[j + 1] << connect << vfphoton_init_names[j] << "\n";
                         }
                     }
                 }
             }
+            //connecting decay particles to their decays
+            for(int k = 0; k < EndHadron.v_id.size(); k++) {
+                
+            if (EndHadron.v_type[k] != 1) {
+                for(int i = 0; i < EndHadron.v_id.size(); i++) {
+                    for(int j = 0; j < EndHadron.v_id.size(); j++) {
+                        if(EndHadron.v_id[i] == EndHadron.v_parent[j]) {
+                            file << tab << vendsthadron_init_names[i] << connect_right << vendsthadron_init_names[j] << "\n";
+                        }
+                    }
+                }
+            break;}
+            }
             
+            if(diquark.exist && MidHadron.v_id.size() == 0) {
+                file << tab << "proton" << connect_right << "diquark" << connect_right << "Lund" << "\n";
+                file << tab << "proton" << connect_right << "quark" << connect_right << "collision" << connect_right  << "struck_quark" << connect_right << "Lund" "\n";
+            }
+            if(diquark.exist && MidHadron.v_id.size() > 0) {
+                file << tab << "proton" << connect_right << "double_quark" << "\n";
+                file << tab << "proton" << connect_right << "quark" << connect_right << "collision" << connect_right  << "struck_quark" << connect_right << "Lund" "\n";
+                for(int i = 0; i < MidHadron.v_id.size(); i++) {
+                file << tab << "double_quark" << connect_right << vmhadron_init_names[i] << connect_right << "Lund" << "\n";
+                }
+                file << tab << "double_quark" << connect_right << "diquark" << connect_right << "Lund" << "\n";
+            }
+            /*for(int i = 0; i < vendsthadron_init_names.size(); i++) {
+                if(EndHadron.v_type[i] != 1){
+                    file << tab << "Lund" << connect_right << vendsthadron_init_names[i] << "\n";
+                }
+            }*/
+            for(int k = 0; k < EndHadron.v_id.size(); k++) {
+                
+            if (EndHadron.v_type[k] != 1) {
+                for(int i = 0; i < EndHadron.v_id.size(); i++) {
+                    for(int j = 0; j < EndHadron.v_id.size(); j++) {
+                        if(EndHadron.v_id[i] == EndHadron.v_parent[j]) {
+                            file << tab << "Lund" << connect_right << vendsthadron_init_names[i] << "\n";
+                        break;}
+                    }
+                }
+            break;}
+            }
+            file << tab << "electron" << connect_right << "vphoton" << connect_right << "collision" << "\n";
+            file << tab << "electron" << connect_right << "scattered_electron" << "\n";
             if(jupyterfile == true) {
                 file << "web";
             }

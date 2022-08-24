@@ -8,9 +8,8 @@ from diagrams.aws.network import ELB, Route53
 from diagrams.aws.analytics import *
 from diagrams.aws.business import *
 
-with Diagram("Particle Collision", show=False) as web: # Keep
+with Diagram("Particle Collision Test", show=False) as web: # Keep
     collision = ComputeOptimizer("collision") # Keep
-    LundString = Compute("Lund String") # Keep
     vphoton = Workmail("virtual photon") # Keep
     with Cluster("Initial Particles"): # Keep
         proton = A4B("proton")  # Keep
