@@ -177,7 +177,7 @@ class Quark : public MultiParticle
 {
     public:
     
-    int initial_id = -999;
+    int pair_id = -999;
     int final_id = -999;
 };
 class Diquark : public MultiParticle
@@ -223,8 +223,8 @@ int CLAS12Flow() {
 //    int userpid5;
 //    int userpid6;
     
-    userpid1 = 221;
-    userpid2 = 221;
+    userpid1 = 113;
+    userpid2 = 213;
 //    userpid3 = ;
 //    userpid4 = ;
 //    userpid5 = ;
@@ -504,10 +504,13 @@ int CLAS12Flow() {
             }
         }
         
-        //Selecting final quark
+        //Selecting final quark and pair quark
         for(int i = 0; i < quark.v_id.size(); i++) {
             if(quark.v_parent[i] == 0) {
                 quark.final_id = i;
+            }
+            else if(quark.v_parent[i] == 2) {
+                quark.pair_id = i;
             }
         }
         
@@ -517,6 +520,14 @@ int CLAS12Flow() {
                 diquark.select_id1 = i;
             }
         }
+        if(MidHadron.v_id.size() > 0) {
+            for(int i = 0; i < MidHadron.v_id.size(); i++) {
+                if(MidHadron.v_parent[i] == 2) {
+                    MidHadron.select_id1 = i;
+                }
+            }
+        }
+        
 
         //NEED TO SELECT OTHER HADRONS?
         if(pidselect_at_least == true) {
@@ -653,6 +664,15 @@ int CLAS12Flow() {
                     file << tab << tab << vmhadron_init_names[i] << equalsmhadron << quote << MidHadron.v_name[i] << quote << endparan << "\n";
                 }
             }*/
+            
+            // Module for writing when quark anti-quark pair and baryon
+            else if(quark.v_id.size() == 4 && MidHadron.v_id.size() != 0) {
+                file << tab << tab << "quark = AMI(\"" << quark.v_name[quark.final_id] << quote << endparan << "\n";
+                file << tab << tab << "pairquark = AMI(\"" << quark.v_name[quark.pair_id] << quote << endparan << "\n";
+                file << tab << tab << "baryon = Compute(\"" << MidHadron.v_name[MidHadron.select_id1] << quote << endparan << "\n";
+                file << tab << "struck_quark = AMI(\"Struck " << quark.v_name[quark.final_id] << quote << endparan << "\n";
+                file << tab << "Lund = Compute(\"Lund\")" << "\n";
+            }
             //Final State writing
             file << tab << finalst_cluster << "\n";
             file << tab << tab << final_hadron_cluster << "\n";
@@ -695,11 +715,11 @@ int CLAS12Flow() {
             
             if(diquark.exist && MidHadron.v_id.size() == 0) {
                 file << tab << "proton" << connect_right << "diquark" << connect_right << "Lund" << "\n";
-                file << tab << "proton" << connect_right << "quark" << connect_right << "collision" << connect_right  << "struck_quark" << connect_right << "Lund" "\n";
+                file << tab << "proton" << connect_right << "quark" << connect_right << "collision" << connect_right  << "struck_quark" << connect_right << "Lund \n";
             }
             if(diquark.exist && MidHadron.v_id.size() > 0) {
                 file << tab << "proton" << connect_right << "double_quark" << "\n";
-                file << tab << "proton" << connect_right << "quark" << connect_right << "collision" << connect_right  << "struck_quark" << connect_right << "Lund" "\n";
+                file << tab << "proton" << connect_right << "quark" << connect_right << "collision" << connect_right  << "struck_quark" << connect_right << "Lund \n";
                 for(int i = 0; i < MidHadron.v_id.size(); i++) {
                 file << tab << "double_quark" << connect_right << vmhadron_init_names[i] << connect_right << "Lund" << "\n";
                 }
@@ -710,6 +730,12 @@ int CLAS12Flow() {
                     file << tab << "Lund" << connect_right << vendsthadron_init_names[i] << "\n";
                 }
             }*/
+            //Quark anti-quark pair with baryon writing
+            if(quark.v_id.size() == 4 && MidHadron.v_id.size() != 0) {
+                file << tab << "proton" << connect_right << "quark" << connect_right << "collision" << connect_right << "struck_quark" << connect_right << "Lund \n";
+                file << tab << "proton" << connect_right << "pairquark" << connect_right << "Lund" << "\n";
+                file << tab << "proton" << connect_right << "baryon" << connect_right << "Lund" << "\n";
+            }
             for(int k = 0; k < EndHadron.v_id.size(); k++) {
                 
             if (EndHadron.v_type[k] != 1) {
