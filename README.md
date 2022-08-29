@@ -5,6 +5,11 @@ Uses Diagrams by @mingrammer https://github.com/mingrammer/diagrams
 1. Reads MC::Lund bank from hipo files, extracts parent, daughter, pid, and index for each variable
 1. Searches for specified hadron endstate (either exact counts or at least as many as specified)
 1. Creates python file from template and adds definitions for particles in chosen event
+
+1. Currently can create flowcharts for three types of collision events
+    1. Quark-diquark result from collision
+    1. Quark-Anti-quark-baryon result from collision
+    1. Quark-diquark-meson result from collision
 ## Planned Features
 1. More customization for event selection
 1. Finishing python file building to create ready-to-run file that outputs flowchart png
