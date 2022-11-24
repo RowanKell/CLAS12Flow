@@ -600,26 +600,29 @@ def main():
                     pyfile.write(tab + "double_quark" + connect_right + vmhadron_init_names[mhadit] + connect_right + "Lund" + "\n")
                     mhadit += 1
                 pyfile.write(tab + "double_quark" + connect_right + "diquark" + connect_right + "Lund" + "\n")
-            #----------------------------------------------------------
-            #everything above is working
-            #----------------------------------------------------------
+
             if(len(quark.v_id) == 4 and len(MidHadron.v_id) != 0):
                 pyfile.write(tab + "proton" + connect_right + "quark" + connect_right + "collision" + connect_right + "struck_quark" + connect_right + "Lund \n")
                 pyfile.write(tab + "proton" + connect_right + "pairquark" + connect_right + "Lund" + "\n")
                 pyfile.write(tab + "proton" + connect_right + "baryon" + connect_right + "Lund" + "\n")
-            lundit = 0
-            while(lundit < len(EndHadron.v_id)):
-                if (EndHadron.v_type[lundit] != 1):
-                    lundit1 = 0
-                    while(lundit1 < len(EndHadron.v_id)):
-                        lundit2 = 0
-                        while(lundit2 < len(EndHadron.v_id)):
-                            if(EndHadron.v_id[lundit1] == EndHadron.v_parent[lundit2]):
-                                pyfile.write(tab + "Lund" + connect_right + vendsthadron_init_names[lundit1] + "\n")
-                                break
-                            lundit2 += 1
-                        lundit1 += 1
-                    break
+            #connect mid state hadrons to lund
+            #Connect all endstate hadrons to lund
+            hadlundit = 0
+            while(hadlundit < len(EndHadron.v_id)):
+                if(EndHadron.v_parent[hadlundit] == Lund.myid):
+                    pyfile.write(tab + "Lund" + connect_right + vendsthadron_init_names[hadlundit] + "\n")
+                hadlundit += 1
+            #--------------------------------------------------------------------------------
+            #Broken currently: need to make this connect midstate hadrons to endstate hadrons
+            #--------------------------------------------------------------------------------
+            midlundit = 0
+            while(midlundit < len(MidHadron.v_id)):
+                    endlundit = 0
+                    while(endlundit < len(EndHadron.v_id)):
+                        if(EndHadron.v_id[lundit1] == MidHadron.v_parent[lundit2]):
+                            pyfile.write(tab + vmidsthadron_init_names[midlundit] + connect_right + vendsthadron_init_names[endlundit] + "\n")
+                        endlundit += 1
+                    midlundit += 1
             pyfile.write(tab + "electron" + connect_right + "vphoton" + connect_right + "collision" + "\n")
             pyfile.write(tab + "electron" + connect_right + "scattered_electron" + "\n")
             pyfile.close()
