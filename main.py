@@ -298,8 +298,6 @@ def main():
     event_count = 0
     for event in file:
         event_count += 1
-        if(event_count > 20):
-            break
         v_id = []
         v_pid = []
         v_px = []
@@ -334,7 +332,6 @@ def main():
         EndHadron = Pidi()
         
         for i in range(len(v_pid)):
-            print(i)
             id_ = v_id[i]
             pid = v_pid[i]
             px = v_px[i]
@@ -398,7 +395,6 @@ def main():
         #-------------------------------------
         #Back in event loop, not particle loop
         #-------------------------------------
-        
         #Selecting pions that come from Lund particle
         
         #piit is pion iterator
@@ -452,14 +448,14 @@ def main():
                 pid_at_least = True
             else:
                 pid_at_least = False
-                break
+                continue
         elif(pidselect_exact == True):
             # checking to see if every hadron is specified by user, and if amount is correct
             if(EndHadron.select_id1 != -999 and EndHadron.select_id2 != -999 and EndHadron.count == userpidN):
                 pid_exact = True
             else:
                 pid_exact = False 
-                break
+                continue
 
         # this is for exact inputs
         if(pidselect_exact == True and \
@@ -495,25 +491,138 @@ def main():
             # Code to create the right number of diagram variable names
             
             # Diagram variable names for endstate hadrons
-            vendsthadron_init_names = np.zeros(len(EndHadron.v_id))
+            vendsthadron_init_names = []
             endhadnameit = 0
             while endhadnameit < len(EndHadron.v_id):
-                vendsthadron_init_names[endhadnameit] = "hadron" + endhadnameit
+                vendsthadron_init_names.append("hadron" + str(endhadnameit))
                 endhadnameit += 1
                 
             #diagram variable names for final state photons
-            vfphoton_init_names = np.zeros(len(photon.v_id))
+            vfphoton_init_names = []
             vfphotonit = 0
             while(vfphotonit < len(photon.v_id)):
-                vfphoton_init_names[vfphotonit] = "fphoton" + vfphotonit
+                vfphoton_init_names.append("fphoton" + str(vfphotonit))
                 vfphotonit += 1
             
-            vmhadron_init_names = np.zeros(len(MidHadron.v_id))
+            vmhadron_init_names = []
             #diagram names for midhadrons
-            if(len(MidHadron.v_id) > 0):
+            if(len(MidHadron.v_name) > 0):
                 mhadnameit = 0
-                while(mhadnameit < len(MidHadron.v_id)):
-                    vmhadron_init_names[mhadnameit] = "mhadron" + mhadnameit
+                while(mhadnameit < len(MidHadron.v_name)):
+                    vmhadron_init_names.append("mhadron" + str(mhadnameit))
+                    
+            #------------------------------------------------------------
+            # CPP CODE
+            #------------------------------------------------------------
+            #Module for writing when there is a diquark, quark and meson
+            if(diquark.exist and len(MidHadron.v_id) > 0):
+                pyfile.write(tab + tab + "quark = AMI(\"" + quark.v_name[quark.final_id] + quote + endparan + "\n")
+                pyfile.write(tab + tab + "double_quark = AMI(\"")
+                if(quark.v_pid[quark.final_id] == 1):
+                    pyfile.write("Up, Up\")\n")
+                elif(quark.v_pid[quark.final_id] == 2):
+                    pyfile.write("Up, Down\")\n")
+                pyfile.write(tab + "Lund = Compute(\"Lund\")" + "\n")
+#                pyfile << tab << "quark = AMI(\"" << quark.v_name[quark.final_id] << quote << endparan << "\n";
+                pyfile.write(tab + post_collision_cluster + "\n")
+                pyfile.write(tab + tab + "struck_quark = AMI(\"Struck " + quark.v_name[quark.final_id] + quote + endparan + "\n")
+                pyfile.write(tab + tab + "diquark = Compute(\"diquark " + str(diquark.v_pid[diquark.select_id1]) + quote + endparan + "\n")
+                mwriteit = 0
+                while(mwriteit < len(MidHadron.v_id)):
+                    pyfile.write(tab + tab + vmhadron_init_names[mwriteit] + equalsmhadron + quote + MidHadron.v_name[mwriteit] + quote + endparan + "\n")
+            #Module for writing when quark and diquark no meson
+            elif(diquark.exist and len(MidHadron.v_id) == 0 ):
+                pyfile.write(tab + tab + "diquark = Compute(\"diquark " + str(diquark.v_pid[diquark.select_id1]) + quote + endparan + "\n")
+                pyfile.write(tab + tab + "quark = AMI(\"" + quark.v_name[quark.final_id] + quote + endparan + "\n")
+                pyfile.write(tab + "Lund = Compute(\"Lund\")" + "\n")
+                pyfile.write(tab + "struck_quark = AMI(\"Struck " + quark.v_name[quark.final_id] + quote + endparan + "\n")
+            
+            # Module for writing when quark anti-quark pair and baryon
+            elif(quark.v_id.size() == 4 and len(MidHadron.v_id) != 0):
+                pyfile.write(tab + tab + "quark = AMI(\"" + quark.v_name[quark.final_id] + quote + endparan + "\n")
+                pyfile.write(tab + tab + "pairquark = AMI(\"" + quark.v_name[quark.pair_id] + quote + endparan + "\n")
+                pyfile.write(tab + tab + "baryon = Compute(\"" + MidHadron.v_name[MidHadron.select_id1] + quote + endparan + "\n")
+                pyfile.write(tab + "struck_quark = AMI(\"Struck " + quark.v_name[quark.final_id] + quote + endparan + "\n")
+                pyfile.write(tab + "Lund = Compute(\"Lund\")" + "\n")
+            #Final State writing
+            pyfile.write(tab + finalst_cluster + "\n")
+            pyfile.write(tab + tab + final_hadron_cluster + "\n")
+            ewriteit = 0
+            while(ewriteit < len(EndHadron.v_id)):
+                pyfile.write(tab + tab + tab + vendsthadron_init_names[ewriteit] + equalshadron + quote + EndHadron.v_name[ewriteit] + quote + endparan + "\n")
+                ewriteit += 1
+                
 
+            #photon endstates:
+            if(len(photon.v_id) > 0):
+                pyfile.write(tab + tab + final_photon_cluster + "\n")
+                photonwriteit = 0
+                while(photonwriteit < len(photon.v_id)):
+                    pyfile.write(tab + tab + tab + vfphoton_init_names[i] + equalsfphoton + quote + PID_map[22] + quote + endparan + "\n")
+                    photonwriteit += 1
+
+            pyfile.write(tab + tab + "scattered_electron = Chime(\"Scattered Electron\")\n")
+            #connecting decay particles to their photons
+            if(len(EndHadron.v_id) > 0 and len(photon.v_id) > 0):
+                endhadpit = 0
+                while(photonhadit < len(EndHadron.v_id)):
+                    photonhit = 0
+                    while(hadphotonit < len(photon.v_id)):
+                        if(EndHadron.v_id[endhadpit] == photon.v_parent[photonhit]):
+                            pyfile.write(tab + vendsthadron_init_names[endhadpit] + connect_right + vfphoton_init_names[photonhit + 1] + "\n")
+                            pyfile.write(tab + vfphoton_init_names[photonhit + 1] + connect + vfphoton_init_names[photonhit] + "\n")
+                        endhadpit += 1
+                        photonhit += 2
+
+            #connecting decay particles to their decays
+            decaycheckit = 0
+            while(decaycheckit < len(EndHadron.v_id)):
+                if(EndHadron.v_type[decaycheckit] != 1):
+                    decayit = 0
+                    while(decayit < len(EndHadron.v_id)):
+                        decayit2 = 0
+                        while(decayit2 < len(EndHadron.v_id)):
+                            if(EndHadron.v_id[decayit] == EndHadron.v_parent[decayit2]):
+                                pyfile.write(tab + vendsthadron_init_names[decayit] + connect_right + vendsthadron_init_names[decayit2] + "\n")
+                            decayit2 += 1
+                        decayit += 1
+                    break
+                decaycheckit += 1
+            
+            if(diquark.exist and len(MidHadron.v_id) == 0):
+                pyfile.write(tab + "proton" + connect_right + "diquark" + connect_right + "Lund" + "\n")
+                pyfile.write(tab + "proton" + connect_right + "quark" + connect_right + "collision" + connect_right  + "struck_quark" + connect_right + "Lund \n")
+            if(diquark.exist and len(MidHadron.v_id) > 0):
+                pyfile.write(tab + "proton" + connect_right + "double_quark" + "\n")
+                pyfile.write(tab + "proton" + connect_right + "quark" + connect_right + "collision" + connect_right  + "struck_quark" + connect_right + "Lund \n")
+                mhadit = 0
+                while(mhadit < len(MidHadron.v_id)):
+                    pyfile.write(tab + "double_quark" + connect_right + vmhadron_init_names[mhadit] + connect_right + "Lund" + "\n")
+                    mhadit += 1
+                pyfile.write(tab + "double_quark" + connect_right + "diquark" + connect_right + "Lund" + "\n")
+            #----------------------------------------------------------
+            #everything above is working
+            #----------------------------------------------------------
+            if(len(quark.v_id) == 4 and len(MidHadron.v_id) != 0):
+                pyfile.write(tab + "proton" + connect_right + "quark" + connect_right + "collision" + connect_right + "struck_quark" + connect_right + "Lund \n")
+                pyfile.write(tab + "proton" + connect_right + "pairquark" + connect_right + "Lund" + "\n")
+                pyfile.write(tab + "proton" + connect_right + "baryon" + connect_right + "Lund" + "\n")
+            lundit = 0
+            while(lundit < len(EndHadron.v_id)):
+                if (EndHadron.v_type[lundit] != 1):
+                    lundit1 = 0
+                    while(lundit1 < len(EndHadron.v_id)):
+                        lundit2 = 0
+                        while(lundit2 < len(EndHadron.v_id)):
+                            if(EndHadron.v_id[lundit1] == EndHadron.v_parent[lundit2]):
+                                pyfile.write(tab + "Lund" + connect_right + vendsthadron_init_names[lundit1] + "\n")
+                                break
+                            lundit2 += 1
+                        lundit1 += 1
+                    break
+            pyfile.write(tab + "electron" + connect_right + "vphoton" + connect_right + "collision" + "\n")
+            pyfile.write(tab + "electron" + connect_right + "scattered_electron" + "\n")
+            pyfile.close()
+            break
     
 main()
