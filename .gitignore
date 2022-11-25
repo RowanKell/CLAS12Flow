@@ -1,0 +1,6 @@
+#ignore example photos
+particle_collision_test.png
+
+#ignore jupyter template and example python script
+copypythondiagram.py
+jupyterdiagram.py
