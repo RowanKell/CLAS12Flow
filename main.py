@@ -186,8 +186,8 @@ class Diquark(MultiParticle):
         
 def main():
     jupyterfile = False;
-    userpid1 = 211
-    userpid2 = -211
+    userpid1 = 113
+    userpid2 = 211
     userpidN = 1 #1 is 2 in 0-index
     
     do_dihadronflow = True;
@@ -296,8 +296,12 @@ def main():
     quote = "\""
         
     event_count = 0
+    #------------------------------------------#
+    #                EVENT LOOP                #
+    #------------------------------------------#
     for event in file:
         event_count += 1
+        print(event_count)
         v_id = []
         v_pid = []
         v_px = []
@@ -332,6 +336,7 @@ def main():
         EndHadron = Pidi()
         
         for i in range(len(v_pid)):
+            print("on particle index: %d" % v_id[i])
             id_ = v_id[i]
             pid = v_pid[i]
             px = v_px[i]
@@ -366,15 +371,16 @@ def main():
                 diquark.exist = True;
             
             #Photon
-            if(pid == 22 and type_ == 1):
+            elif(pid == 22 and type_ == 1):
                 photon.fillParticle(id_, pid, px, py, pz, daughter, parent, mass, vz, type_);
                 photon.update(id_, pid, px, py, pz, daughter, parent, 
                               mass, vz, type_);
             
             #Proton target
-            elif(id == 2):
+            elif(id_ == 2):
                 proton.fillParticle(id_, pid, px, py, pz, daughter, parent, mass, vz, type_);
                 proton.setVectors();
+                print("found proton at index %d" % id_)
             
             # Mid Hadrons
             elif((pid in vhadronlist) and (parent == 2)):
@@ -383,6 +389,7 @@ def main():
                 MidHadron.update(id_, pid, px, py, pz, daughter, parent, 
                               mass, vz, type_);
                 MidHadron.v_name.append(" ");
+                print("found midhadron pid %d" % pid)
             
             #End Hadrons
             elif((pid in vhadronlist) and (parent != 2)):
@@ -391,10 +398,11 @@ def main():
                 EndHadron.update(id_, pid, px, py, pz, daughter, parent, 
                               mass, vz, type_);
                 EndHadron.v_name.append(" ");
+                print("found endhadron pid %d" % pid)
         
-        #-------------------------------------
-        #Back in event loop, not particle loop
-        #-------------------------------------
+        #---------------------------------------#
+        # Back in event loop, not particle loop #
+        #---------------------------------------#
         #Selecting pions that come from Lund particle
         
         #piit is pion iterator
