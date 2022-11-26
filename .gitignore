@@ -4,3 +4,6 @@ particle_collision_test.png
 #ignore jupyter template and example python script
 FlowDev/copypythondiagram.py
 FlowDev/jupyterdiagram.py
+
+#ignore checkpoints
+.ipynb_checkpoints/
