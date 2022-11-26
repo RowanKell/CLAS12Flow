@@ -7,3 +7,5 @@ FlowDev/jupyterdiagram.py
 
 #ignore checkpoints
 .ipynb_checkpoints/
+
+FlowDev/.ipynb_checkpoints/
