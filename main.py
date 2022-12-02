@@ -187,7 +187,7 @@ class Diquark(MultiParticle):
 def main():
     jupyterfile = False;
     #userpids are the pids of the particles you want to find
-    userpid1 = 211
+    userpid1 = 113
     userpid2 = -211
     userpidN = 1 #1 is 2 in 0-index
     
@@ -271,12 +271,12 @@ def main():
         
     #copy the input file so we can run the code many times
 
-    original = r'FlowDev/pythondiagram.py'
-    target = r'FlowDev/copypythondiagram.py'
+    original = r'pythondiagram.py'
+    target = r'copypythondiagram.py'
 
     shutil.copyfile(original, target)
     #Set base input file
-    pyfile = open("FlowDev/copypythondiagram.py", "a")
+    pyfile = open("copypythondiagram.py", "a")
     
     # Flowchart variables
     equalshadron = " = Compute("
@@ -302,6 +302,8 @@ def main():
     #------------------------------------------#
     for event in file:
         event_count += 1
+        if(event_count % 100000 == 0):
+            print("Event #" + str(event_count))
         v_id = []
         v_pid = []
         v_px = []
@@ -473,24 +475,30 @@ def main():
             good_dihadronflow = True
         else:
             good_dihadronflow = False
+            print("Found no relevant events")
         
         if(do_dihadronflow == True and good_dihadronflow == True):
+            print("Found event: #" + str(event_count))
             #assign names from pid for end state hadrons
             ehadit = 0
+            
             while(ehadit < len(EndHadron.v_id)):
                 EndHadron.v_name[ehadit] = PID_map[EndHadron.v_pid[ehadit]]
                 ehadit += 1
+            
             #assign names to midhadrons
             mhadit = 0
             while(mhadit < len(MidHadron.v_id)):
                 MidHadron.v_name[mhadit] = PID_map[MidHadron.v_pid[mhadit]]
                 mhadit += 1
+                
             #assign quark names
             qnameit = 0
             while(qnameit < len(quark.v_id)):
                 quark.v_name[qnameit] = PID_map[quark.v_pid[qnameit]]
                 qnameit += 1
                 
+            
         
             # Code to create the right number of diagram variable names
             
@@ -514,7 +522,7 @@ def main():
                 mhadnameit = 0
                 while(mhadnameit < len(MidHadron.v_name)):
                     vmhadron_init_names.append("mhadron" + str(mhadnameit))
-                    
+                    mhadnameit += 1
             #------------------------------------------------------------
             # CPP CODE
             #------------------------------------------------------------
@@ -534,6 +542,7 @@ def main():
                 mwriteit = 0
                 while(mwriteit < len(MidHadron.v_id)):
                     pyfile.write(tab + tab + vmhadron_init_names[mwriteit] + equalsmhadron + quote + MidHadron.v_name[mwriteit] + quote + endparan + "\n")
+                    mwriteit += 1
             #Module for writing when quark and diquark no meson
             elif(diquark.exist and len(MidHadron.v_id) == 0 ):
                 pyfile.write(tab + tab + "diquark = Compute(\"diquark " + str(diquark.v_pid[diquark.select_id1]) + quote + endparan + "\n")
@@ -562,21 +571,22 @@ def main():
                 pyfile.write(tab + tab + final_photon_cluster + "\n")
                 photonwriteit = 0
                 while(photonwriteit < len(photon.v_id)):
-                    pyfile.write(tab + tab + tab + vfphoton_init_names[i] + equalsfphoton + quote + PID_map[22] + quote + endparan + "\n")
+                    pyfile.write(tab + tab + tab + vfphoton_init_names[photonwriteit] + equalsfphoton + quote + PID_map[22] + quote + endparan + "\n")
                     photonwriteit += 1
 
             pyfile.write(tab + tab + "scattered_electron = Chime(\"Scattered Electron\")\n")
             #connecting decay particles to their photons
             if(len(EndHadron.v_id) > 0 and len(photon.v_id) > 0):
                 endhadpit = 0
-                while(photonhadit < len(EndHadron.v_id)):
+                while(endhadpit < len(EndHadron.v_id)):
                     photonhit = 0
-                    while(hadphotonit < len(photon.v_id)):
+                    while(photonhit < len(photon.v_id)):
                         if(EndHadron.v_id[endhadpit] == photon.v_parent[photonhit]):
                             pyfile.write(tab + vendsthadron_init_names[endhadpit] + connect_right + vfphoton_init_names[photonhit + 1] + "\n")
                             pyfile.write(tab + vfphoton_init_names[photonhit + 1] + connect + vfphoton_init_names[photonhit] + "\n")
-                        endhadpit += 1
                         photonhit += 2
+                    endhadpit += 1
+                    
 
             #connecting decay particles to their decays
             decaycheckit = 0
@@ -623,7 +633,7 @@ def main():
             while(midlundit < len(MidHadron.v_id)):
                     endlundit = 0
                     while(endlundit < len(EndHadron.v_id)):
-                        if(EndHadron.v_id[lundit1] == MidHadron.v_parent[lundit2]):
+                        if(EndHadron.v_id[endlundit] == MidHadron.v_parent[midlundit]):
                             pyfile.write(tab + vmidsthadron_init_names[midlundit] + connect_right + vendsthadron_init_names[endlundit] + "\n")
                         endlundit += 1
                     midlundit += 1
