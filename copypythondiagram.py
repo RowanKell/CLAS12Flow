@@ -15,32 +15,26 @@ with Diagram("Particle Collision Test", show=False): # Keep
         proton = A4B("proton")  # Keep
         electron = Chime("electron") # Keep
     with Cluster("Proton"): # Keep
-        quark = AMI("Down")
-
-        double_quark = AMI("Up, Up")
-    Lund = Compute("Lund")
-    with Cluster("Post Collision"):
-        struck_quark = AMI("Struck Down")
-
         diquark = Compute("diquark 2101")
 
-        mhadron0 = Aurora("Rho+")
+        quark = AMI("Up")
+
+    Lund = Compute("Lund")
+    struck_quark = AMI("Struck Up")
 
     with Cluster("Final State"):
         with Cluster("Hadrons"):
-            hadron0 = Compute("Pi+")
+            hadron0 = Compute("Proton")
 
-            hadron1 = Compute("Pi0")
+            hadron1 = Compute("Anti-Lambda")
 
-            hadron2 = Compute("Pi-")
+            hadron2 = Compute("Sigma+")
 
-            hadron3 = Compute("Proton")
+            hadron3 = Compute("Pi-")
 
-            hadron4 = Compute("Rho0")
+            hadron4 = Compute("Pi0")
 
-            hadron5 = Compute("Pi-")
-
-            hadron6 = Compute("Pi+")
+            hadron5 = Compute("Pi+")
 
         with Cluster("Decay Photon Pairs"):
             fphoton0 = Neptune("Photon")
@@ -48,16 +42,15 @@ with Diagram("Particle Collision Test", show=False): # Keep
             fphoton1 = Neptune("Photon")
 
         scattered_electron = Chime("Scattered Electron")
-    hadron1 >> fphoton1
+    hadron4 >> fphoton1
     fphoton1 - fphoton0
-    hadron4 >> hadron5
-    hadron4 >> hadron6
-    proton >> double_quark
+    hadron1 >> hadron4
+    hadron2 >> hadron5
+    proton >> diquark >> Lund
     proton >> quark >> collision >> struck_quark >> Lund 
-    double_quark >> mhadron0 >> Lund
-    double_quark >> diquark >> Lund
+    Lund >> hadron0
+    Lund >> hadron1
     Lund >> hadron2
     Lund >> hadron3
-    Lund >> hadron4
     electron >> vphoton >> collision
     electron >> scattered_electron

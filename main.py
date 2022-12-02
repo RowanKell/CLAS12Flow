@@ -8,6 +8,7 @@
 
 # MCParticle Class for organizing all particle data from MC::Lund
 import hipopy.hipopy as hip
+import os
 import numpy as np
 import shutil
 
@@ -187,7 +188,7 @@ class Diquark(MultiParticle):
 def main():
     jupyterfile = False;
     #userpids are the pids of the particles you want to find
-    userpid1 = 113
+    userpid1 = -3122
     userpid2 = -211
     userpidN = 1 #1 is 2 in 0-index
     
@@ -221,6 +222,7 @@ def main():
         22 : "Photon",
         # Bosons
         -24 : "W-",
+        21 : "Gluon",
         24 : "W+",
         23 : "Z",
         # Baryons
@@ -302,7 +304,7 @@ def main():
     #------------------------------------------#
     for event in file:
         event_count += 1
-        if(event_count % 100000 == 0):
+        if(event_count % 1000 == 0):
             print("Event #" + str(event_count))
         v_id = []
         v_pid = []
@@ -323,6 +325,8 @@ def main():
         v_vz = file.getFloats('MC::Lund','vz')
         v_type = file.getBytes('MC::Lund','type')
         v_mass = file.getFloats('MC::Lund','mass')
+        
+        RUN_count = file.getInts('RUN::config','event')
 
         electron = MCParticle()
         proton = MCParticle()
@@ -640,6 +644,8 @@ def main():
             pyfile.write(tab + "electron" + connect_right + "vphoton" + connect_right + "collision" + "\n")
             pyfile.write(tab + "electron" + connect_right + "scattered_electron" + "\n")
             pyfile.close()
+            print(RUN_count)
             break
     
 main()
+os.system("python3 ./copypythondiagram.py")
