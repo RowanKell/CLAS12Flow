@@ -187,6 +187,14 @@ class Diquark(MultiParticle):
         
 def main():
     jupyterfile = False;
+    
+    dataType = "REC"
+    typedic = {
+        "MC" : 0
+        "REC" : 1
+    }
+#     dataType = "MC"
+    dataInput = typedic[dataType] #converts user input into number 0 or 1
     #userpids are the pids of the particles you want to find
     userpid1 = -3122
     userpid2 = -211
