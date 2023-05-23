@@ -190,7 +190,7 @@ def main():
     
     dataType = "REC"
     typedic = {
-        "MC" : 0
+        "MC" : 0,
         "REC" : 1
     }
 #     dataType = "MC"
